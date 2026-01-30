@@ -1,0 +1,29 @@
+spec: "1.0"
+devices:
+  device 1:
+    eom:
+      ASRL INSTR:
+        q: "\r\n"
+        r: "\n"
+    error: DUMMY ERROR
+    dialogues:
+      - q: "PING"
+        r: "PONG"
+    properties:
+      frequency:
+        default: 100.0
+        getter:
+          q: "?FREQ"
+          r: "{:.2f}"
+        setter:
+          q: "!FREQ {:.2f}"
+          r: OK
+        specs:
+          min: 1
+          max: 100000
+          type: float
+      
+
+resources:
+  ASRL1::INSTR:
+    device: device 1
