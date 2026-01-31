@@ -1,0 +1,47 @@
+from PyQt5 import QtWidgets, QtCore
+from GUI.zmq_client import ZmqClient
+from GUI.control_row import ControlRow
+
+class MainWindow(QtWidgets.QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("PSU Control GUI")
+        self.setGeometry(100, 100, 600, 400)
+
+        self.psus = ["ASRL1::INSTR", "ASRL2::INSTR"]
+
+        # ZMQ Client
+        self.zmq_client = ZmqClient()
+        self.zmq_thread = QtCore.QThread()
+        self.zmq_client.moveToThread(self.zmq_thread)
+        self.zmq_thread.start()
+
+        # Setup GUI
+        self.init_ui()
+
+        # Connect signals
+        for row in self.control_rows:
+            row.send_request.connect(self.zmq_client.send)
+            self.zmq_client.reply_received.connect(row.handle_reply)
+
+        # Request initial status to register GUI with server
+        for psu in self.psus:
+            self.zmq_client.send({
+                "type": "system",
+                "action": "status",
+                "address": psu
+            })
+
+    def init_ui(self):
+        central = QtWidgets.QWidget()
+        self.setCentralWidget(central)
+        layout = QtWidgets.QVBoxLayout(central)
+
+        self.label = QtWidgets.QLabel("PSU Control Panel")
+        layout.addWidget(self.label)
+
+        self.control_rows = []
+        for psu in self.psus:
+            row = ControlRow(psu)
+            layout.addWidget(row)
+            self.control_rows.append(row)

@@ -16,17 +16,24 @@ class Client:
          return reply
 if __name__ == "__main__":
     client = Client()
-    addresses = ["ASRL1::INSTR", "ASRL2::INSTR"]
-    commands = ["?IDN", "PING", "MEASURE:VOLTAGE?", "MEASURE:CURRENT?"]
+    address = "ASRL1::INSTR"
+    request = {
+        "type": "system",
+        "action": "disconnect",
+        "address": address,
+        "id": 69
+    }
+    print(f"Sending request: {request}")
+    reply = client.send_request(request)
+    print(f"Received reply: {reply}")
 
-    for _ in range(10):
-        address = random.choice(addresses)
-        command = random.choice(commands)
-        request = {
-            "address": address,
-            "command": command
-        }
-        print(f"Sending request: {request}")
-        reply = client.send_request(request)
-        print(f"Received reply: {reply}")
-        time.sleep(1)
+
+    # request = {
+    #     "type": "scpi",
+    #     "address": address,
+    #     "command": "*IDN?",
+    #     "id": 1
+    # }
+    # print(f"Sending request: {request}")
+    # reply = client.send_request(request)
+    # print(f"Received reply: {reply}")
