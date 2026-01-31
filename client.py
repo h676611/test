@@ -2,32 +2,31 @@ import sys
 import time
 import zmq
 import random
+import json
 
 class Client:
-     def __init__(self, address="tcp://localhost:5555", name="Client"):
+     def __init__(self, address="tcp://localhost:5555"):
          self.context = zmq.Context()
-         self.socket = self.context.socket(zmq.REQ)
+         self.socket = self.context.socket(zmq.DEALER)
          self.socket.connect(address)
-         self.name = name
 
      def send_request(self, request):
-         self.socket.send(request.encode())
+         self.socket.send_json(request)
          reply = self.socket.recv()
          return reply
-
 if __name__ == "__main__":
-     client = Client(name=sys.argv[1] if len(sys.argv) > 1 else "Client")
-     while True:
-         random_number = random.random() * 10
-         request = f"!FREQ {random_number:.2f}"
-        #  request = "!FREQ 2.0"
-         print(f"{client.name} sending request: {request}")
-         reply = client.send_request(request).decode()
-         print(f"Received reply: {reply}")
-         time.sleep(1)
+    client = Client()
+    addresses = ["ASRL1::INSTR", "ASRL2::INSTR"]
+    commands = ["?IDN", "PING", "MEASURE:VOLTAGE?", "MEASURE:CURRENT?"]
 
-         request = "?FREQ"
-         print(f"{client.name} sending request: {request}")
-         reply = client.send_request(request).decode()
-         print(f"Received reply: {reply}")
-         time.sleep(1)
+    for _ in range(10):
+        address = random.choice(addresses)
+        command = random.choice(commands)
+        request = {
+            "address": address,
+            "command": command
+        }
+        print(f"Sending request: {request}")
+        reply = client.send_request(request)
+        print(f"Received reply: {reply}")
+        time.sleep(1)
