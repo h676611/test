@@ -1,7 +1,7 @@
 import pyvisa
 import zmq
-import json
 from psu_queue import PSUQueue
+from PSU import PSU
 
 class Server:
     def __init__(self, psu_queues, address="tcp://*:5555"):
@@ -11,25 +11,22 @@ class Server:
         self.psu_queues = psu_queues
         self.rm = pyvisa.ResourceManager('dummy_psu.yaml@sim')
         self.clients = set()
+        self.psus = {}
 
     def start(self):
         print("Server started")
         print("Waiting for requests...")
 
         while True:
-            identity, message = self.socket.recv_multipart()
-
-            try:
-                request = json.loads(message.decode())
-            except json.JSONDecodeError:
-                self.send_error(identity, "Invalid JSON")
-                continue
+            identity = self.socket.recv()
+            request = self.socket.recv_json()
 
             try:
                 self.handle_request(identity, request)
             except Exception as e:
                 print(f"Error handling request: {e}")
                 self.send_error(identity, str(e))
+
 
     def handle_request(self, identity, request):
         msg_type = request.get("type")
@@ -61,9 +58,9 @@ class Server:
             self.send_error(identity, f"Unknown system action: {action}")
 
     def send_status(self, identity, address):
-        status = "connected" if address in self.psu_queues else "disconnected"
-        response = {"type": "status_update", "status": status, "address": address}
-        self.send_response(identity, json.dumps(response))
+        psu = self.psus.get(address)
+        response = {"type": "status_update", "status": psu.get_state(), "address": address}
+        self.send_response(identity, response)
 
     def handle_scpi(self, identity, request):
         address = request.get("address")
@@ -77,31 +74,37 @@ class Server:
             self.send_error(identity, "PSU already connected")
             return
         
-        psu = self.rm.open_resource(address)
-        self.psu_queues[address] = PSUQueue(psu, self)
+        psu = PSU(self.rm.open_resource(address))
+        psu.connected = True
+        self.psus[address] = psu
+        self.psu_queues[address] = PSUQueue(self.psus[address], self)
 
-        response = {"type": "status_update", "status": "connected", "address": address}
-        self.broadcast(json.dumps(response))
-        self.send_response(identity, json.dumps(response))
+        response = {"type": "status_update", "status": psu.get_state(), "address": address}
+        self.broadcast(response)
+        self.send_response(identity, response)
     
     def disconnect_psu(self, identity, address):
         if address not in self.psu_queues:
             self.send_error(identity, "PSU not connected")
             return
-
+        psu = self.psus[address]
+        psu.connected = False
         del self.psu_queues[address]
-        response = {"type": "status_update", "status": "disconnected", "address": address}
-        self.broadcast(json.dumps(response))
-        self.send_response(identity, json.dumps(response))
+        response = {"type": "status_update", "status": psu.get_state(), "address": address}
+        self.broadcast(response)
+        self.send_response(identity, response)
        
     def send_error(self, identity, message):
-        reply = {"status": "error", "message": message}
-        self.send_response(identity, json.dumps(reply))
+        reply = {"type": "error", "message": message}
+        self.send_response(identity, reply)
 
     def broadcast(self, message):
+        # pass
         for client in self.clients:
             print(f"Sending {message} to client: {client}")
             self.send_response(client, message)
 
     def send_response(self, identity, response):
-        self.socket.send_multipart([identity, response.encode()])
+        print(f"Sending response {response}")
+        self.socket.send(identity, zmq.SNDMORE)
+        self.socket.send_json(response)

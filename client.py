@@ -19,7 +19,7 @@ if __name__ == "__main__":
     address = "ASRL1::INSTR"
     request = {
         "type": "system",
-        "action": "disconnect",
+        "action": "connect",
         "address": address,
         "id": 69
     }
@@ -28,12 +28,23 @@ if __name__ == "__main__":
     print(f"Received reply: {reply}")
 
 
-    # request = {
-    #     "type": "scpi",
-    #     "address": address,
-    #     "command": "*IDN?",
-    #     "id": 1
-    # }
-    # print(f"Sending request: {request}")
-    # reply = client.send_request(request)
-    # print(f"Received reply: {reply}")
+    request = {
+        "type": "scpi",
+        "address": address,
+        "command": "INST OUT 1",
+        "id": 1
+    }
+    print(f"Sending request: {request}")
+    reply = client.send_request(request)
+    print(f"Received reply: {reply}")
+
+
+    request = {
+        "type": "scpi",
+        "address": address,
+        "command": "INST:NSEL?",
+        "id": 2
+    }
+    print(f"Sending request: {request}")
+    reply = client.send_request(request)
+    print(f"Received reply: {reply}")
