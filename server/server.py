@@ -80,7 +80,7 @@ class Server:
         self.psu_queues[address] = PSUQueue(self.psus[address], self)
 
         response = {"type": "status_update", "status": psu.get_state(), "address": address}
-        self.broadcast(response)
+        self.broadcast(response, exclude_identity=identity)
         self.send_response(identity, response)
     
     def disconnect_psu(self, identity, address):
@@ -91,9 +91,10 @@ class Server:
         psu.connected = False
         del self.psu_queues[address]
         response = {"type": "status_update", "status": psu.get_state(), "address": address}
-        self.broadcast(response)
+        self.broadcast(response, exclude_identity=identity)
         self.send_response(identity, response)
-       
+
+    # endre på noe her for å få vekk error på server-side om en client spør om status uten å være koblet på en psu?
     def send_status(self, identity, address):
         psu = self.psus.get(address)
         response = {"type": "status_update", "status": psu.get_state(), "address": address}
@@ -103,11 +104,14 @@ class Server:
         reply = {"type": "error", "message": message}
         self.send_response(identity, reply)
 
-    def broadcast(self, message):
-        pass
-        # for client in self.clients:
-        #     print(f"Broadcasting")
-        #     self.send_response(client, message)
+    def broadcast(self, message, exclude_identity=None):
+        for client in list(self.clients):
+            if exclude_identity is not None and client == exclude_identity:
+                continue
+            try:
+                self.send_response(client, message)
+            except Exception as e:
+                print(f"Broadcast failed for {client}: {e}")
 
     def send_response(self, identity, response):
         print(f"Sending response {response}")

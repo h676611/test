@@ -34,10 +34,15 @@ class PSUQueue:
                     state_reply = {
                         "type": "status_update",
                         "address": self.address,
-                        "status": state
+                        "status": state,
+                        "id": request.get("id"),
+                        "response": response
                     }
-                    # print(f"Broadcasting state update: {state_reply}")
-                    self.server.broadcast(json.dumps(state_reply))
+                    # sender gets the status update once
+                    self.server.send_response(identity, json.dumps(state_reply))
+                    # everyone else gets it once
+                    self.server.broadcast(json.dumps(state_reply), exclude_identity=identity)
+                    continue
 
             except Exception as e:
                 response = f"Error: {e}"
