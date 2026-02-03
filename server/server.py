@@ -4,6 +4,8 @@ from psu_queue import PSUQueue
 from PSU import PSU
 
 class Server:
+    """A server to handle client requests for PSU control via SCPI commands over ZeroMQ."""
+
     def __init__(self, psu_queues, address="tcp://*:5555"):
         self.context = zmq.Context()
         self.socket = self.context.socket(zmq.ROUTER)
@@ -99,10 +101,10 @@ class Server:
         self.send_response(identity, reply)
 
     def broadcast(self, message):
-        # pass
-        for client in self.clients:
-            print(f"Sending {message} to client: {client}")
-            self.send_response(client, message)
+        pass
+        # for client in self.clients:
+        #     print(f"Broadcasting")
+        #     self.send_response(client, message)
 
     def send_response(self, identity, response):
         print(f"Sending response {response}")

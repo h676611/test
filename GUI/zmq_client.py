@@ -2,6 +2,8 @@ from PyQt5 import QtCore
 import zmq, threading, time
 
 class ZmqClient(QtCore.QObject):
+    """A ZeroMQ client integrated with PyQt5 for asynchronous communication with the server."""
+
     reply_received = QtCore.pyqtSignal(dict)
 
     def __init__(self, address="tcp://localhost:5555"):

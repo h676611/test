@@ -3,6 +3,8 @@ import uuid
 from PyQt5 import QtWidgets, QtCore
 
 class ControlRow(QtWidgets.QWidget):
+    """A GUI control row for a single instrument, allowing connection management and SCPI command sending."""
+
     send_request = QtCore.pyqtSignal(dict)
 
     def __init__(self, instrument, parent=None):

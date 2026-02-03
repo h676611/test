@@ -12,7 +12,7 @@ class Client:
 
      def send_request(self, request):
          self.socket.send_json(request)
-         reply = self.socket.recv()
+         reply = self.socket.recv_json()
          return reply
 if __name__ == "__main__":
     client = Client()
@@ -31,19 +31,8 @@ if __name__ == "__main__":
     request = {
         "type": "scpi",
         "address": address,
-        "command": "INST OUT 1",
+        "command": "VOLT 2.0",
         "id": 1
-    }
-    print(f"Sending request: {request}")
-    reply = client.send_request(request)
-    print(f"Received reply: {reply}")
-
-
-    request = {
-        "type": "scpi",
-        "address": address,
-        "command": "INST:NSEL?",
-        "id": 2
     }
     print(f"Sending request: {request}")
     reply = client.send_request(request)

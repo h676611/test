@@ -1,5 +1,5 @@
 class PSU:
-    """A simple PSU class to interact with a power supply unit via SCPI commands."""
+    """Represents a Power Supply Unit with SCPI command handling."""
     def __init__(self, resource):
         self.resource = resource
         self.voltage = 0.0
@@ -16,6 +16,8 @@ class PSU:
             self.current = float(command.split()[1])
         elif command.startswith("OUTP"):
             self.output = "ON" in command.upper()
+        elif command.startswith("INST OUT"):
+            pass  # Handle mode switching if necessary
 
     def query(self, command: str) -> str:
         print(f"Querying PSU with command: {command}")

@@ -3,6 +3,8 @@ import queue
 import json
 
 class PSUQueue:
+    """Manages a queue of SCPI commands for a PSU to ensure sequential processing."""
+    
     SET_COMMANDS = ["INST OUT", "VOLT", "CURR", "OUTP:STATe"]
 
     def __init__(self, psu, server):
@@ -25,14 +27,14 @@ class PSUQueue:
                 
                 # If this is a setter, broadcast updated state
                 if any(cmd in command for cmd in self.SET_COMMANDS):
-                    self.psu.write(command)  # Ensure the command is executed
+                    self.psu.write(command)
                     state = self.psu.get_state()
                     state_reply = {
                         "type": "status_update",
                         "address": request["address"],
                         "status": state
                     }
-                    print(f"Broadcasting state update: {state_reply}")
+                    # print(f"Broadcasting state update: {state_reply}")
                     self.server.broadcast(json.dumps(state_reply))
 
             except Exception as e:
@@ -45,5 +47,5 @@ class PSUQueue:
                 "address": request["address"],
                 "response": response
             }
-            print(f"Sending reply to client: {reply}")
+            # print(f"Sending reply to client: {reply}")
             self.server.send_response(identity, json.dumps(reply))

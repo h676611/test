@@ -3,6 +3,8 @@ from GUI.zmq_client import ZmqClient
 from GUI.control_row import ControlRow
 
 class MainWindow(QtWidgets.QMainWindow):
+    """Main application window for PSU control GUI."""
+
     def __init__(self):
         super().__init__()
         self.setWindowTitle("PSU Control GUI")
