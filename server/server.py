@@ -44,22 +44,23 @@ class Server:
             raise ValueError("Unknown request type")
         
     def handle_system(self, identity, request):
-        payload = request.get("payload", {})
-        action = payload.get("action")
         address = request.get("address")
+        actions = request["payload"]
 
         dispatch = {
             "connect": self.connect_psu,
             "disconnect": self.disconnect_psu,
             "status": self.send_status,
         }
-
-        handler = dispatch.get(action)
-        if handler:
-            handler(identity, address)
+        handler = []
+        for action in actions:
+            handler.append(dispatch.get(action))
+        
+        if len(handler) > 0:
+            for action in handler:
+                action(identity,address)
         else:
             self.send_error(identity, f"Unknown system action: {action}")
-
 
     def handle_scpi(self, identity, request):
         address = request.get("address")
