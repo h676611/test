@@ -26,6 +26,8 @@ devices:
         r: "OK"
       - q: "SYST:MIX"
         r: "OK"
+      - q: "SYST:ERR?"
+        r: "ERROR"
     properties:
       channel:
         default: 1

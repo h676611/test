@@ -11,6 +11,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setGeometry(100, 100, 600, 400)
 
         self.psus = ["ASRL1::INSTR", "ASRL2::INSTR"]
+        self.control_rows = []
 
         # ZMQ Client
         self.zmq_client = ZmqClient()
@@ -42,7 +43,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.label = QtWidgets.QLabel("PSU Control Panel")
         layout.addWidget(self.label)
 
-        self.control_rows = []
         for psu in self.psus:
             row = ControlRow(psu)
             layout.addWidget(row)

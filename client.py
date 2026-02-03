@@ -18,22 +18,40 @@ if __name__ == "__main__":
     client = Client()
     address = "ASRL1::INSTR"
     request = {
-        "type": "system",
-        "action": "connect",
-        "address": address,
-        "id": 69
-    }
+        "type": "system_request",
+        "address": "ASRL1::INSTR",
+        "id": 1,
+        "payload": {
+            "action": "connect"
+            }
+        }
+
     print(f"Sending request: {request}")
     reply = client.send_request(request)
     print(f"Received reply: {reply}")
 
 
     request = {
-        "type": "scpi",
-        "address": address,
-        "command": "VOLT 2.0",
-        "id": 1
-    }
+        "type": "scpi_request",
+        "address": "ASRL1::INSTR",
+        "id": 42,
+        "payload": {
+            "command": "VOLT 2.0"
+            }
+        }
+    print(f"Sending request: {request}")
+    reply = client.send_request(request)
+    print(f"Received reply: {reply}")
+
+
+    request = {
+        "type": "system_request",
+        "address": "ASRL1::INSTR",
+        "id": 2,
+        "payload": {
+            "action": "disconnect"
+            }
+        }
     print(f"Sending request: {request}")
     reply = client.send_request(request)
     print(f"Received reply: {reply}")

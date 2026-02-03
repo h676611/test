@@ -6,6 +6,7 @@ class PSU:
         self.current = 0.0
         self.output = False
         self.connected = False
+        self.address = resource.resource_name
 
     def write(self, command: str):
         self.resource.write(command)

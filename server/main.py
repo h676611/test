@@ -5,9 +5,8 @@ from psu_queue import PSUQueue
 
 if __name__ == "__main__":
     rm = pyvisa.ResourceManager('dummy_psu.yaml@sim')
-    psu_queues = {}  # Start empty
 
-    server = Server(psu_queues)
+    server = Server()
 
     # Optionally start server in its own thread
     server_thread = threading.Thread(target=server.start, daemon=True)

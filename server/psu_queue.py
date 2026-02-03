@@ -4,7 +4,7 @@ import json
 
 class PSUQueue:
     """Manages a queue of SCPI commands for a PSU to ensure sequential processing."""
-    
+
     SET_COMMANDS = ["INST OUT", "VOLT", "CURR", "OUTP:STATe"]
 
     def __init__(self, psu, server):
@@ -12,6 +12,7 @@ class PSUQueue:
         self.server = server
         self.queue = queue.Queue()
         self.thread = threading.Thread(target=self.worker, daemon=True)
+        self.address = psu.address
         self.thread.start()
         
     def add_command(self, identity, request):
@@ -20,7 +21,8 @@ class PSUQueue:
     def worker(self):
         while True:
             identity, request = self.queue.get()
-            command = request["command"]
+            payload = request.get("payload", {})
+            command = payload.get("command", "")
             try:
                 # Send command to PSU
                 response = self.psu.query(command)  # your PSU class handles setter vs getter
@@ -31,7 +33,7 @@ class PSUQueue:
                     state = self.psu.get_state()
                     state_reply = {
                         "type": "status_update",
-                        "address": request["address"],
+                        "address": self.address,
                         "status": state
                     }
                     # print(f"Broadcasting state update: {state_reply}")
@@ -44,7 +46,7 @@ class PSUQueue:
             # Always send reply to the client that sent the command
             reply = {
                 "id": request.get("id"),
-                "address": request["address"],
+                "address": self.address,
                 "response": response
             }
             # print(f"Sending reply to client: {reply}")

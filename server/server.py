@@ -6,11 +6,11 @@ from PSU import PSU
 class Server:
     """A server to handle client requests for PSU control via SCPI commands over ZeroMQ."""
 
-    def __init__(self, psu_queues, address="tcp://*:5555"):
+    def __init__(self, address="tcp://*:5555"):
         self.context = zmq.Context()
         self.socket = self.context.socket(zmq.ROUTER)
         self.socket.bind(address)
-        self.psu_queues = psu_queues
+        self.psu_queues = {}
         self.rm = pyvisa.ResourceManager('dummy_psu.yaml@sim')
         self.clients = set()
         self.psus = {}
@@ -29,22 +29,23 @@ class Server:
                 print(f"Error handling request: {e}")
                 self.send_error(identity, str(e))
 
-
     def handle_request(self, identity, request):
         msg_type = request.get("type")
         self.clients.add(identity)
 
         print(f"Received request: {request}")
+        print(f"address in request: {request.get('address')}")
 
-        if msg_type == "system":
+        if msg_type == "system_request":
             self.handle_system(identity, request)
-        elif msg_type == "scpi":
+        elif msg_type == "scpi_request":
             self.handle_scpi(identity, request)
         else:
             raise ValueError("Unknown request type")
         
     def handle_system(self, identity, request):
-        action = request.get("action")
+        payload = request.get("payload", {})
+        action = payload.get("action")
         address = request.get("address")
 
         dispatch = {
@@ -59,10 +60,6 @@ class Server:
         else:
             self.send_error(identity, f"Unknown system action: {action}")
 
-    def send_status(self, identity, address):
-        psu = self.psus.get(address)
-        response = {"type": "status_update", "status": psu.get_state(), "address": address}
-        self.send_response(identity, response)
 
     def handle_scpi(self, identity, request):
         address = request.get("address")
@@ -96,6 +93,11 @@ class Server:
         self.broadcast(response)
         self.send_response(identity, response)
        
+    def send_status(self, identity, address):
+        psu = self.psus.get(address)
+        response = {"type": "status_update", "status": psu.get_state(), "address": address}
+        self.send_response(identity, response)
+
     def send_error(self, identity, message):
         reply = {"type": "error", "message": message}
         self.send_response(identity, reply)
