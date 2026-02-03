@@ -17,23 +17,51 @@ class Client:
 if __name__ == "__main__":
     client = Client()
     address = "ASRL1::INSTR"
-    request = {
-        "type": "system",
-        "action": "connect",
-        "address": address,
-        "id": 69
-    }
-    print(f"Sending request: {request}")
-    reply = client.send_request(request)
-    print(f"Received reply: {reply}")
+    # request = {
+    #     "type": "system",
+    #     "action": "connect",
+    #     "address": address,
+    #     "id": 69
+    # }
+    # print(f"Sending request: {request}")
+    # reply = client.send_request(request)
+    # print(f"Received reply: {reply}")
 
 
-    request = {
-        "type": "scpi",
-        "address": address,
-        "command": "VOLT 2.0",
-        "id": 1
-    }
-    print(f"Sending request: {request}")
-    reply = client.send_request(request)
-    print(f"Received reply: {reply}")
+    # request = {
+    #     "type": "scpi",
+    #     "address": address,
+    #     "command": "VOLT 2.0",
+    #     "id": 1
+    # }
+    # print(f"Sending request: {request}")
+    # reply = client.send_request(request)
+    # print(f"Received reply: {reply}")
+
+    while True:
+        query = input("Skriv en kommand: ")
+        if query == "connect":
+            request = {
+            "type": "system",
+            "action": "connect",
+            "address": address,
+            "id": 69
+            }
+        elif query == "disconnect":
+            request = {
+            "type": "system",
+            "action": "disconnect",
+            "address": address,
+            "id": 69
+            }
+        elif query == "setVoltage":
+            val = float(input("Value for new volt: "))
+            request = {
+                "type": "scpi",
+                "address": address,
+                "command": f"VOLT {val}",
+                "id": 1
+            }
+        print(f"Sending request: {request}")
+        reply = client.send_request(request)
+        print(f"Received reply: {reply}")
