@@ -1,6 +1,7 @@
 from PyQt5 import QtWidgets, QtCore
 from GUI.zmq_client import ZmqClient
 from GUI.control_row import ControlRow
+from server.requestKomponents import generateRequest
 
 class MainWindow(QtWidgets.QMainWindow):
     """Main application window for PSU control GUI."""
@@ -29,11 +30,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Request initial status to register GUI with server
         for psu in self.psus:
-            self.zmq_client.send({
-                "type": "system",
-                "action": "status",
-                "address": psu
-            })
+            request = generateRequest("system_request", psu,1, ["connect","status"])
+            self.zmq_client.send(request)
+
 
     def init_ui(self):
         central = QtWidgets.QWidget()
