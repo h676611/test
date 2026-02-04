@@ -2,6 +2,7 @@ import pyvisa
 import zmq
 from psu_queue import PSUQueue
 from PSU import PSU
+from requestKomponents import generateReply
 
 class Server:
     """A server to handle client requests for PSU control via SCPI commands over ZeroMQ."""
@@ -79,7 +80,7 @@ class Server:
         self.psus[address] = psu
         self.psu_queues[address] = PSUQueue(self.psus[address], self)
 
-        response = {"type": "status_update", "status": psu.get_state(), "address": address}
+        response = generateReply("status_update",psu.get_state(), address)
         self.broadcast(response)
         self.send_response(identity, response)
     
@@ -90,13 +91,13 @@ class Server:
         psu = self.psus[address]
         psu.connected = False
         del self.psu_queues[address]
-        response = {"type": "status_update", "status": psu.get_state(), "address": address}
+        response = generateReply("status_update",psu.get_state(), address)
         self.broadcast(response)
         self.send_response(identity, response)
        
     def send_status(self, identity, address):
         psu = self.psus.get(address)
-        response = {"type": "status_update", "status": psu.get_state(), "address": address}
+        response = generateReply("status_update",psu.get_state(), address)
         self.send_response(identity, response)
 
     def send_error(self, identity, message):

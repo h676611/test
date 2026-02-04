@@ -9,3 +9,11 @@ def generateRequest(type, address, id, payload=[]):
         return reply
     return "Error: Type not system_request or scpi_request"
         
+
+def generateReply(type, state, address):
+    reply = {
+        "type": type, 
+        "status": state, 
+        "address": address
+        }
+    return reply

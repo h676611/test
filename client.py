@@ -3,7 +3,7 @@ import time
 import zmq
 import random
 import json
-from helper.requestKomponents import generateRequest
+from server.requestKomponents import generateRequest
 
 class Client:
     def __init__(self, address="tcp://localhost:5555"):
