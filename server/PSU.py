@@ -9,40 +9,27 @@ class PSU:
         self.address = resource.resource_name
         self.current_limit = 0.0
         self.voltage_limit = 0.0
-
-    def write(self, command: str):
-        reply = self.resource.write(command)
-        print(f"Sent command: {command}, Reply: {reply}")
-        # If the command sets voltage/current/output, update internal state
-        if command.startswith("VOLT "):
-            parts = command.split()
-            if parts[1] == "ILIM":
-                self.voltage_limit = float(parts[2])
-            else:
-                self.voltage = float(parts[1])
-        elif command.startswith("CURR "):
-            parts = command.split()
-            if parts[1] == "VLIM":
-                self.current_limit = float(parts[2])
-            else:
-                self.current = float(parts[1])
-        elif command.startswith("OUTP"):
-            self.output = "ON" in command.upper()
-        elif command.startswith("INST OUT"):
-            pass  # Handle mode switching if necessary
-        return reply
+        self.SET_COMMANDS = ["INST OUT", "VOLT", "CURR", "CURR VLIM", "VOLT ILIM"]
+        self.state = {
+            "VOLT": self.voltage,
+            "CURR": self.current,
+            "CURR VLIM": self.voltage_limit,
+            "VOLT ILIM": self.current_limit
+        }
 
     def query(self, command: str) -> str:
-        print(f"Querying PSU with command: {command}")
         response = self.resource.query(command)
-        print(f"Received response: {response}")
-        # If the command reads a value, update state
-        if command.startswith("MEAS:VOLT?"):
-            self.voltage = float(response)
-        elif command.startswith("MEAS:CURR?"):
-            self.current = float(response)
-        elif command.startswith("OUTP:STATe?"):
-            self.output = response.strip().upper() == "ON"
+
+        if any(command.startswith(cmd) for cmd in self.SET_COMMANDS):
+            print("set command detected!")
+            parts = command.split()
+            if parts[-1].isnumeric():
+                print(f'number {parts[-1]}')
+                self.state[parts[0]] = parts[-1]
+                print(f'state: {self.state}')
+
+
+        print(f"Query PSU with command: {command} response: {response}")
         return response
 
     def get_state(self):
@@ -50,5 +37,7 @@ class PSU:
             "voltage": self.voltage,
             "current": self.current,
             "output": self.output,
-            "connected": self.connected
+            "connected": self.connected,
+            "current limit": self.current_limit,
+            "voltage limit": self.voltage_limit
         }

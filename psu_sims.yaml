@@ -10,10 +10,6 @@ devices:
     dialogues:
       - q: "*IDN?"
         r: "Rohde&Schwarz,HMP4040,DUMMY,SIM"
-      - q: "MEAS:VOLT?"
-        r: "{:.2f}"
-      - q: "MEAS:CURR?"
-        r: "{:.2f}"
       - q: "SYST:LOC"
         r: "OK"
       - q: "SYST:REM"

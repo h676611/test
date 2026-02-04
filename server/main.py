@@ -1,7 +1,5 @@
-import pyvisa
 import threading
 from server import Server
-from psu_queue import PSUQueue
 
 if __name__ == "__main__":
     server = Server()

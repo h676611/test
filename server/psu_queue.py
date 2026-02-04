@@ -5,8 +5,6 @@ import json
 class PSUQueue:
     """Manages a queue of SCPI commands for a PSU to ensure sequential processing."""
 
-    SET_COMMANDS = ["INST OUT", "VOLT", "CURR", "CURR VLIM", "VOLT ILIM"]
-
     def __init__(self, psu, server):
         self.psu = psu
         self.server = server
@@ -23,30 +21,49 @@ class PSUQueue:
             identity, request = self.queue.get()
             payload = request.get("payload", {})
             command = payload.get("command", "")
-            try:
-                # Send command to PSU
-                response = self.psu.query(command)  # your PSU class handles setter vs getter
-                
-                # If this is a setter, broadcast updated state
-                if any(cmd in command for cmd in self.SET_COMMANDS):
-                    reply = self.psu.write(command)
-                    state = self.psu.get_state()
-                    state_reply = {
-                        "type": "status_update",
-                        "address": self.address,
-                        "status": state
-                    }
-
-                    self.server.broadcast(json.dumps(state_reply))
-
-            except Exception as e:
-                response = f"Error: {e}"
-                print(f"Command {command} failed: {e}")
-
-            # Always send reply to the client that sent the command
+            
+            response = self.psu.query(command)
             reply = {
                 "id": request.get("id"),
                 "address": self.address,
                 "response": response
             }
-            self.server.send_response(identity, json.dumps(reply))
+            self.server.send_response(identity, reply)
+
+    def broadcast_update(self):
+        state = self.psu.get_state()
+        state_message = {
+            "type": "status_update",
+            "address": self.address,
+            "status": state
+        }
+        self.server.broadcast(state_message)
+
+            # try:
+            #     # Send command to PSU
+                
+            #     # If this is a setter, broadcast updated state
+            #     if any(cmd in command for cmd in self.SET_COMMANDS):
+            #         response = self.psu.write(command)
+            #         # state = self.psu.get_state()
+            #         # state_reply = {
+            #         #     "type": "status_update",
+            #         #     "address": self.address,
+            #         #     "status": state
+            #         # }
+            #     else :
+            #         response = self.psu.query(command)  # your PSU class handles setter vs getter
+
+            #         # self.server.broadcast(json.dumps(state_reply))
+
+            # except Exception as e:
+            #     response = f"Error: {e}"
+            #     print(f"Command {command} failed: {e}")
+
+            # # Always send reply to the client that sent the command
+            # reply = {
+            #     "id": request.get("id"),
+            #     "address": self.address,
+            #     "response": response
+            # }
+            # self.server.send_response(identity, json.dumps(reply))
