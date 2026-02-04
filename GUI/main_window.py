@@ -29,9 +29,9 @@ class MainWindow(QtWidgets.QMainWindow):
             self.zmq_client.reply_received.connect(row.handle_reply)
 
         # Request initial status to register GUI with server
-        for psu in self.psus:
-            request = generateRequest("system_request", psu,1, ["connect","status"])
-            self.zmq_client.send(request)
+        # for psu in self.psus:
+        #     request = generateRequest("system_request", psu,1, ["connect","status"])
+        #     self.zmq_client.send(request)
 
 
     def init_ui(self):

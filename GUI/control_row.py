@@ -1,52 +1,114 @@
 import json
 import uuid
 from PyQt5 import QtWidgets, QtCore
+from server.requestKomponents import generateRequest
 
 class ControlRow(QtWidgets.QWidget):
     """A GUI control row for a single instrument, allowing connection management and SCPI command sending."""
 
     send_request = QtCore.pyqtSignal(dict)
 
+    # def __init__(self, instrument, parent=None):
+        # super().__init__(parent)
+        # self.instrument = instrument
+        # i = 1
+        # if instrument == "ASRL1::INSTR":
+        #     i = 4
+        # for i in range(0,i):
+
+        #     layout = QtWidgets.QHBoxLayout(self)
+
+        #     self.label = QtWidgets.QLabel(instrument)
+        #     layout.addWidget(self.label)
+
+        #     # Status label
+        #     self.status_label = QtWidgets.QLabel("Idle")
+        #     layout.addWidget(self.status_label)
+
+        #     # Toggle button
+        #     self.toggle_button = QtWidgets.QPushButton("Connect")
+        #     self.toggle_button.clicked.connect(self.on_toggle)
+        #     layout.addWidget(self.toggle_button)
+
+        #     # Voltage display
+        #     self.voltage_label = QtWidgets.QLabel("Voltage: ")
+        #     layout.addWidget(self.voltage_label)
+
+        #     # Input for setting voltage
+        #     self.voltage_input = QtWidgets.QDoubleSpinBox()
+        #     self.voltage_input.setRange(-100., 100.)
+        #     self.voltage_input.setValue(-10.)
+        #     layout.addWidget(self.voltage_input)
+
+        #     #Current display
+        #     self.current_label = QtWidgets.QLabel("Current: ")
+        #     layout.addWidget(self.current_label)
+
+        #     #input for current
+        #     self.current_input = QtWidgets.QDoubleSpinBox()
+        #     self.current_input.setRange(-10., 10.)
+        #     self.current_input.setValue(5.55)
+        #     layout.addWidget(self.current_input)
+
+        #     # Button to send voltage and current values
+        #     self.send_voltage_button = QtWidgets.QPushButton("on")
+        #     self.send_voltage_button.clicked.connect(self.on_set_voltage)
+        #     layout.addWidget(self.send_voltage_button)
+
     def __init__(self, instrument, parent=None):
         super().__init__(parent)
         self.instrument = instrument
+        
+        # Create a vertical container to hold all rows
+        main_layout = QtWidgets.QVBoxLayout(self)
+        
+        # Determine how many rows this specific instrument needs
+        num_rows = 4 if instrument == "ASRL1::INSTR" else 1
 
-        layout = QtWidgets.QHBoxLayout(self)
+        for i in range(num_rows):
+            # Create a horizontal layout for THIS specific row
+            row_layout = QtWidgets.QHBoxLayout()
 
-        self.label = QtWidgets.QLabel(instrument)
-        layout.addWidget(self.label)
+            # Label - show the instrument name only on the first row for clarity
+            display_name = instrument if i == 0 else f"{instrument} (Ch {i+1})"
+            self.label = QtWidgets.QLabel(display_name)
+            row_layout.addWidget(self.label)
 
-        # Status label
-        self.status_label = QtWidgets.QLabel("Idle")
-        layout.addWidget(self.status_label)
+            # Status label
+            self.status_label = QtWidgets.QLabel("Idle")
+            row_layout.addWidget(self.status_label)
 
-        # Toggle button
-        self.toggle_button = QtWidgets.QPushButton("Connect")
-        self.toggle_button.clicked.connect(self.on_toggle)
-        layout.addWidget(self.toggle_button)
+            # Toggle button
+            self.toggle_button = QtWidgets.QPushButton("Connect")
+            self.toggle_button.clicked.connect(self.on_toggle)
+            row_layout.addWidget(self.toggle_button)
 
-        # Voltage display and input
-        self.voltage_label = QtWidgets.QLabel("Voltage: N/A")
-        layout.addWidget(self.voltage_label)
+            # Voltage display/input
+            row_layout.addWidget(QtWidgets.QLabel("Voltage: "))
+            self.voltage_input = QtWidgets.QDoubleSpinBox()
+            self.voltage_input.setRange(-100., 100.)
+            self.voltage_input.setValue(-10.)
+            row_layout.addWidget(self.voltage_input)
 
-        # Input for setting voltage
-        self.voltage_input = QtWidgets.QLineEdit()
-        self.voltage_input.setPlaceholderText("Set Voltage")
-        layout.addWidget(self.voltage_input)
+            # Current display/input
+            row_layout.addWidget(QtWidgets.QLabel("Current: "))
+            self.current_input = QtWidgets.QDoubleSpinBox()
+            self.current_input.setRange(-10., 10.)
+            self.current_input.setValue(5.55)
+            row_layout.addWidget(self.current_input)
 
-        # Button to send voltage command
-        self.send_voltage_button = QtWidgets.QPushButton("Set Voltage")
-        self.send_voltage_button.clicked.connect(self.on_set_voltage)
-        layout.addWidget(self.send_voltage_button)
+            # Send Button
+            self.send_button = QtWidgets.QPushButton("On")
+            # Tip: Use a lambda or partial if you need to know WHICH row was clicked
+            self.send_button.clicked.connect(lambda checked, row=i: self.on_row_submitted(row))
+            row_layout.addWidget(self.send_button)
 
-    def send_scpi_command(self, command):
+            # Add this horizontal row into the main vertical layout
+            main_layout.addLayout(row_layout)
+
+    def send_scpi_command(self, commands):
         request_id = str(uuid.uuid4())
-        request = {
-            "type": "scpi",
-            "id": request_id,
-            "address": self.instrument,
-            "command": command
-        }
+        request = generateRequest("scpi_request", self.instrument, request_id, commands)
         self.send_request.emit(request)
         return request_id
     
