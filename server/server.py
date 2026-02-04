@@ -2,6 +2,7 @@ import pyvisa
 import zmq
 from psu_queue import PSUQueue
 from PSU import PSU
+from requestKomponents import generateReply
 
 class Server:
     """A server to handle client requests for PSU control via SCPI commands over ZeroMQ."""
@@ -44,22 +45,23 @@ class Server:
             raise ValueError("Unknown request type")
         
     def handle_system(self, identity, request):
-        payload = request.get("payload", {})
-        action = payload.get("action")
         address = request.get("address")
+        actions = request["payload"]
 
         dispatch = {
             "connect": self.connect_psu,
             "disconnect": self.disconnect_psu,
             "status": self.send_status,
         }
-
-        handler = dispatch.get(action)
-        if handler:
-            handler(identity, address)
+        handler = []
+        for action in actions:
+            handler.append(dispatch.get(action))
+        
+        if len(handler) > 0:
+            for action in handler:
+                action(identity,address)
         else:
             self.send_error(identity, f"Unknown system action: {action}")
-
 
     def handle_scpi(self, identity, request):
         address = request.get("address")
@@ -78,7 +80,7 @@ class Server:
         self.psus[address] = psu
         self.psu_queues[address] = PSUQueue(self.psus[address], self)
 
-        response = {"type": "status_update", "status": psu.get_state(), "address": address}
+        response = generateReply("status_update",psu.get_state(), address)
         self.broadcast(response)
         self.send_response(identity, response)
     
@@ -89,13 +91,13 @@ class Server:
         psu = self.psus[address]
         psu.connected = False
         del self.psu_queues[address]
-        response = {"type": "status_update", "status": psu.get_state(), "address": address}
+        response = generateReply("status_update",psu.get_state(), address)
         self.broadcast(response)
         self.send_response(identity, response)
        
     def send_status(self, identity, address):
         psu = self.psus.get(address)
-        response = {"type": "status_update", "status": psu.get_state(), "address": address}
+        response = generateReply("status_update",psu.get_state(), address)
         self.send_response(identity, response)
 
     def send_error(self, identity, message):
