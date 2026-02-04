@@ -14,6 +14,8 @@ class Server:
         self.rm = pyvisa.ResourceManager('dummy_psu.yaml@sim')
         self.clients = set()
         self.psus = {}
+        self.pub = self.context.socket(zmq.PUB)
+        self.pub.bind("tcp://*:5556")
 
     def start(self):
         print("Server started")
@@ -80,7 +82,7 @@ class Server:
         self.psu_queues[address] = PSUQueue(self.psus[address], self)
 
         response = {"type": "status_update", "status": psu.get_state(), "address": address}
-        self.broadcast(response, exclude_identity=identity)
+        self.broadcast_status(response)
         self.send_response(identity, response)
     
     def disconnect_psu(self, identity, address):
@@ -91,7 +93,7 @@ class Server:
         psu.connected = False
         del self.psu_queues[address]
         response = {"type": "status_update", "status": psu.get_state(), "address": address}
-        self.broadcast(response, exclude_identity=identity)
+        self.broadcast_status(response)
         self.send_response(identity, response)
 
     # endre på noe her for å få vekk error på server-side om en client spør om status uten å være koblet på en psu?
@@ -112,6 +114,9 @@ class Server:
                 self.send_response(client, message)
             except Exception as e:
                 print(f"Broadcast failed for {client}: {e}")
+
+    def broadcast_status(self, status_msg):
+        self.pub.send_json(status_msg)
 
     def send_response(self, identity, response):
         print(f"Sending response {response}")

@@ -41,7 +41,7 @@ class PSUQueue:
                     # sender gets the status update once
                     self.server.send_response(identity, json.dumps(state_reply))
                     # everyone else gets it once
-                    self.server.broadcast(json.dumps(state_reply), exclude_identity=identity)
+                    self.server.broadcast_status(state_reply)
                     continue
 
             except Exception as e:
