@@ -58,7 +58,6 @@ class ControlRow(QtWidgets.QWidget):
     def __init__(self, instrument, parent=None):
         super().__init__(parent)
         self.instrument = instrument
-        
         # Create a vertical container to hold all rows
         main_layout = QtWidgets.QVBoxLayout(self)
         
@@ -84,7 +83,8 @@ class ControlRow(QtWidgets.QWidget):
             row_layout.addWidget(self.toggle_button)
 
             # Voltage display/input
-            row_layout.addWidget(QtWidgets.QLabel("Voltage: "))
+            self.voltage_label = QtWidgets.QLabel("Voltage: ")
+            row_layout.addWidget(self.voltage_label)
             self.voltage_input = QtWidgets.QDoubleSpinBox()
             self.voltage_input.setRange(-100., 100.)
             self.voltage_input.setValue(-10.)
@@ -131,8 +131,8 @@ class ControlRow(QtWidgets.QWidget):
     def on_toggle(self):
         self.status_label.setText("Sending…")
         self.send_request.emit({
-            "type": "system",  # or "scpi" depending on action
-            "action": "connect" if self.toggle_button.text() == "Connect" else "disconnect",
+            "type": "system_request",  # or "scpi" depending on action
+            "payload": ["connect" if self.toggle_button.text() == "Connect" else "disconnect"],
             "address": self.instrument
         })
 
