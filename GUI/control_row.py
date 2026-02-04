@@ -55,56 +55,62 @@ class ControlRow(QtWidgets.QWidget):
         #     self.send_voltage_button.clicked.connect(self.on_set_voltage)
         #     layout.addWidget(self.send_voltage_button)
 
-    def __init__(self, instrument, parent=None):
-        super().__init__(parent)
-        self.instrument = instrument
+    from PyQt5 import QtWidgets
+
+def __init__(self, instrument, parent=None):
+    super().__init__(parent)
+    self.instrument = instrument
+    
+    # Main container
+    main_layout = QtWidgets.QVBoxLayout(self)
+    
+    # 1. Create lists to store your widgets so you can access them later
+    self.rows = [] 
+    
+    num_rows = 4 if instrument == "ASRL1::INSTR" else 1
+
+    for i in range(num_rows):
+        row_layout = QtWidgets.QHBoxLayout()
         
-        # Create a vertical container to hold all rows
-        main_layout = QtWidgets.QVBoxLayout(self)
+        # Create a dictionary to hold this row's widgets
+        row_widgets = {}
+
+        # Label
+        label_text = f"{instrument} - Ch {i+1}" if num_rows > 1 else instrument
+        row_widgets['label'] = QtWidgets.QLabel(label_text)
+        row_layout.addWidget(row_widgets['label'])
+
+        # Voltage Input
+        row_widgets['voltage_input'] = QtWidgets.QDoubleSpinBox()
+        row_widgets['voltage_input'].setRange(-100., 100.)
+        row_layout.addWidget(row_widgets['voltage_input'])
+
+        # Current Input
+        row_widgets['current_input'] = QtWidgets.QDoubleSpinBox()
+        row_widgets['current_input'].setRange(-10., 10.)
+        row_layout.addWidget(row_widgets['current_input'])
+
+        # Send Button
+        send_btn = QtWidgets.QPushButton(f"Set Row {i+1}")
         
-        # Determine how many rows this specific instrument needs
-        num_rows = 4 if instrument == "ASRL1::INSTR" else 1
+        # 2. Use lambda with a default variable 'row=i' to capture the current index
+        send_btn.clicked.connect(lambda checked, row=i: self.on_row_submitted(row))
+        
+        row_layout.addWidget(send_btn)
 
-        for i in range(num_rows):
-            # Create a horizontal layout for THIS specific row
-            row_layout = QtWidgets.QHBoxLayout()
+        # Store the dictionary in our list and add layout to screen
+        self.rows.append(row_widgets)
+        main_layout.addLayout(row_layout)
 
-            # Label - show the instrument name only on the first row for clarity
-            display_name = instrument if i == 0 else f"{instrument} (Ch {i+1})"
-            self.label = QtWidgets.QLabel(display_name)
-            row_layout.addWidget(self.label)
-
-            # Status label
-            self.status_label = QtWidgets.QLabel("Idle")
-            row_layout.addWidget(self.status_label)
-
-            # Toggle button
-            self.toggle_button = QtWidgets.QPushButton("Connect")
-            self.toggle_button.clicked.connect(self.on_toggle)
-            row_layout.addWidget(self.toggle_button)
-
-            # Voltage display/input
-            row_layout.addWidget(QtWidgets.QLabel("Voltage: "))
-            self.voltage_input = QtWidgets.QDoubleSpinBox()
-            self.voltage_input.setRange(-100., 100.)
-            self.voltage_input.setValue(-10.)
-            row_layout.addWidget(self.voltage_input)
-
-            # Current display/input
-            row_layout.addWidget(QtWidgets.QLabel("Current: "))
-            self.current_input = QtWidgets.QDoubleSpinBox()
-            self.current_input.setRange(-10., 10.)
-            self.current_input.setValue(5.55)
-            row_layout.addWidget(self.current_input)
-
-            # Send Button
-            self.send_button = QtWidgets.QPushButton("On")
-            # Tip: Use a lambda or partial if you need to know WHICH row was clicked
-            self.send_button.clicked.connect(lambda checked, row=i: self.on_row_submitted(row))
-            row_layout.addWidget(self.send_button)
-
-            # Add this horizontal row into the main vertical layout
-            main_layout.addLayout(row_layout)
+# 3. The function that handles the logic
+def on_row_submitted(self, row_index):
+    # Access the specific widgets using the row_index
+    target_row = self.rows[row_index]
+    v_val = target_row['voltage_input'].value()
+    i_val = target_row['current_input'].value()
+    
+    print(f"Sending to {self.instrument} [Row {row_index}]: Voltage={v_val}, Current={i_val}")
+    # Now you can call your instrument communication logic here
 
     def send_scpi_command(self, commands):
         request_id = str(uuid.uuid4())
@@ -163,12 +169,3 @@ class ControlRow(QtWidgets.QWidget):
     
     def handle_error(self, message):
         self.status_label.setText(f"Error: {message}")
-
-    def on_row_submitted(self, row_index):
-        # Access the specific widgets using the row_index
-        target_row = self.rows[row_index]
-        v_val = target_row['voltage_input'].value()
-        i_val = target_row['current_input'].value()
-        
-        print(f"Sending to {self.instrument} [Row {row_index}]: Voltage={v_val}, Current={i_val}")
-        # Now you can call your instrument communication logic here
