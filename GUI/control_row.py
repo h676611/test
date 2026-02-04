@@ -163,3 +163,12 @@ class ControlRow(QtWidgets.QWidget):
     
     def handle_error(self, message):
         self.status_label.setText(f"Error: {message}")
+
+    def on_row_submitted(self, row_index):
+        # Access the specific widgets using the row_index
+        target_row = self.rows[row_index]
+        v_val = target_row['voltage_input'].value()
+        i_val = target_row['current_input'].value()
+        
+        print(f"Sending to {self.instrument} [Row {row_index}]: Voltage={v_val}, Current={i_val}")
+        # Now you can call your instrument communication logic here
