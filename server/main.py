@@ -4,8 +4,6 @@ from server import Server
 from psu_queue import PSUQueue
 
 if __name__ == "__main__":
-    rm = pyvisa.ResourceManager('dummy_psu.yaml@sim')
-
     server = Server()
 
     # Optionally start server in its own thread

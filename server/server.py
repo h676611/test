@@ -1,3 +1,4 @@
+import os
 import pyvisa
 import zmq
 from psu_queue import PSUQueue
@@ -11,7 +12,7 @@ class Server:
         self.socket = self.context.socket(zmq.ROUTER)
         self.socket.bind(address)
         self.psu_queues = {}
-        self.rm = pyvisa.ResourceManager('dummy_psu.yaml@sim')
+        self.rm = pyvisa.ResourceManager('psu_sims.yaml@sim')
         self.clients = set()
         self.psus = {}
 

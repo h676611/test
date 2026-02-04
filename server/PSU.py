@@ -7,18 +7,30 @@ class PSU:
         self.output = False
         self.connected = False
         self.address = resource.resource_name
+        self.current_limit = 0.0
+        self.voltage_limit = 0.0
 
     def write(self, command: str):
-        self.resource.write(command)
+        reply = self.resource.write(command)
+        print(f"Sent command: {command}, Reply: {reply}")
         # If the command sets voltage/current/output, update internal state
         if command.startswith("VOLT "):
-            self.voltage = float(command.split()[1])
+            parts = command.split()
+            if parts[1] == "ILIM":
+                self.voltage_limit = float(parts[2])
+            else:
+                self.voltage = float(parts[1])
         elif command.startswith("CURR "):
-            self.current = float(command.split()[1])
+            parts = command.split()
+            if parts[1] == "VLIM":
+                self.current_limit = float(parts[2])
+            else:
+                self.current = float(parts[1])
         elif command.startswith("OUTP"):
             self.output = "ON" in command.upper()
         elif command.startswith("INST OUT"):
             pass  # Handle mode switching if necessary
+        return reply
 
     def query(self, command: str) -> str:
         print(f"Querying PSU with command: {command}")

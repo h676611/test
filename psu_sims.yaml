@@ -10,16 +10,10 @@ devices:
     dialogues:
       - q: "*IDN?"
         r: "Rohde&Schwarz,HMP4040,DUMMY,SIM"
-      - q: "INST:NSEL?"
-        r: "1"
       - q: "MEAS:VOLT?"
         r: "{:.2f}"
       - q: "MEAS:CURR?"
         r: "{:.2f}"
-      - q: "OUTP:SEL?"
-        r: "ON"
-      - q: "OUTP:STATe?"
-        r: "ON"
       - q: "SYST:LOC"
         r: "OK"
       - q: "SYST:REM"
@@ -27,7 +21,21 @@ devices:
       - q: "SYST:MIX"
         r: "OK"
       - q: "SYST:ERR?"
-        r: "ERROR"
+        r: "ERROR 0,No error"
+      - q: "OUTP 1"
+        r: "OK"
+      - q: "OUTP 0"
+        r: "OK"
+      - q: "OUTP?"
+        r: "{output_state}"
+      - q: "OUTP:SEL 1"
+        r: "OK"
+      - q: "OUTP:SEL 0"
+        r: "OK"
+      - q: "OUTP:GEN 1"
+        r: "OK"
+      - q: "OUTP:GEN 0"
+        r: "OK"
     properties:
       channel:
         default: 1
@@ -64,6 +72,30 @@ devices:
         specs:
           min: 0.0
           max: 5.0
+          type: float
+      current_limit:
+        default: 5.0
+        getter:
+          q: "VOLT ILIM?"
+          r: "{:.2f}"
+        setter:
+          q: "VOLT ILIM {:.2f}"
+          r: "OK"
+        specs:
+          min: 0.0
+          max: 5.0
+          type: float
+      voltage_limit:
+        default: 32.0
+        getter:
+          q: "CURR VLIM?"
+          r: "{:.2f}"
+        setter:
+          q: "CURR VLIM {:.2f}"
+          r: "OK"
+        specs:
+          min: 0.0
+          max: 32.0
           type: float
 
 resources:

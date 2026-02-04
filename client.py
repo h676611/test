@@ -36,7 +36,19 @@ if __name__ == "__main__":
         "address": "ASRL1::INSTR",
         "id": 42,
         "payload": {
-            "command": "VOLT 2.0"
+            "command": "CURR VLIM 2.0"
+            }
+        }
+    print(f"Sending request: {request}")
+    reply = client.send_request(request)
+    print(f"Received reply: {reply}")
+
+    request = {
+        "type": "scpi_request",
+        "address": "ASRL1::INSTR",
+        "id": 42,
+        "payload": {
+            "command": "CURR VLIM?"
             }
         }
     print(f"Sending request: {request}")
