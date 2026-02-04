@@ -102,15 +102,43 @@ def __init__(self, instrument, parent=None):
         self.rows.append(row_widgets)
         main_layout.addLayout(row_layout)
 
-# 3. The function that handles the logic
-def on_row_submitted(self, row_index):
-    # Access the specific widgets using the row_index
-    target_row = self.rows[row_index]
-    v_val = target_row['voltage_input'].value()
-    i_val = target_row['current_input'].value()
-    
-    print(f"Sending to {self.instrument} [Row {row_index}]: Voltage={v_val}, Current={i_val}")
-    # Now you can call your instrument communication logic here
+            # Label - show the instrument name only on the first row for clarity
+            display_name = instrument if i == 0 else f"{instrument} (Ch {i+1})"
+            self.label = QtWidgets.QLabel(display_name)
+            row_layout.addWidget(self.label)
+
+            # Status label
+            self.status_label = QtWidgets.QLabel("Idle")
+            row_layout.addWidget(self.status_label)
+
+            # Toggle button
+            self.toggle_button = QtWidgets.QPushButton("Connect")
+            self.toggle_button.clicked.connect(self.on_toggle)
+            row_layout.addWidget(self.toggle_button)
+
+            # Voltage display/input
+            self.voltage_label = QtWidgets.QLabel("Voltage: ")
+            row_layout.addWidget(self.voltage_label)
+            self.voltage_input = QtWidgets.QDoubleSpinBox()
+            self.voltage_input.setRange(-100., 100.)
+            self.voltage_input.setValue(-10.)
+            row_layout.addWidget(self.voltage_input)
+
+            # Current display/input
+            row_layout.addWidget(QtWidgets.QLabel("Current: "))
+            self.current_input = QtWidgets.QDoubleSpinBox()
+            self.current_input.setRange(-10., 10.)
+            self.current_input.setValue(5.55)
+            row_layout.addWidget(self.current_input)
+
+            # Send Button
+            self.send_button = QtWidgets.QPushButton("On")
+            # Tip: Use a lambda or partial if you need to know WHICH row was clicked
+            self.send_button.clicked.connect(lambda checked, row=i: self.on_row_submitted(row))
+            row_layout.addWidget(self.send_button)
+
+            # Add this horizontal row into the main vertical layout
+            main_layout.addLayout(row_layout)
 
     def send_scpi_command(self, commands):
         request_id = str(uuid.uuid4())
@@ -137,8 +165,8 @@ def on_row_submitted(self, row_index):
     def on_toggle(self):
         self.status_label.setText("Sending…")
         self.send_request.emit({
-            "type": "system",  # or "scpi" depending on action
-            "action": "connect" if self.toggle_button.text() == "Connect" else "disconnect",
+            "type": "system_request",  # or "scpi" depending on action
+            "payload": ["connect" if self.toggle_button.text() == "Connect" else "disconnect"],
             "address": self.instrument
         })
 
