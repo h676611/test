@@ -1,3 +1,4 @@
+import os
 import pyvisa
 import zmq
 from psu_queue import PSUQueue
@@ -12,7 +13,7 @@ class Server:
         self.socket = self.context.socket(zmq.ROUTER)
         self.socket.bind(address)
         self.psu_queues = {}
-        self.rm = pyvisa.ResourceManager('dummy_psu.yaml@sim')
+        self.rm = pyvisa.ResourceManager('psu_sims.yaml@sim')
         self.clients = set()
         self.psus = {}
 
@@ -35,7 +36,6 @@ class Server:
         self.clients.add(identity)
 
         print(f"Received request: {request}")
-        print(f"address in request: {request.get('address')}")
 
         if msg_type == "system_request":
             self.handle_system(identity, request)
@@ -105,10 +105,10 @@ class Server:
         self.send_response(identity, reply)
 
     def broadcast(self, message):
-        pass
-        # for client in self.clients:
-        #     print(f"Broadcasting")
-        #     self.send_response(client, message)
+        # pass
+        print(f"Broadcasting {message}")
+        for client in self.clients:
+            self.send_response(client, message)
 
     def send_response(self, identity, response):
         print(f"Sending response {response}")
