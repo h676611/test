@@ -19,10 +19,11 @@ class PSUQueue:
     def worker(self):
         while True:
             identity, request = self.queue.get()
-            payload = request.get("payload", {})
-            command = payload.get("command", "")
-            
-            response = self.psu.query(command)
+            commands = request.get("payload", {})
+            for command in commands:
+                response = self.psu.query(command)
+                print(f'command: {command} with response: {response}')
+                
             reply = {
                 "id": request.get("id"),
                 "address": self.address,

@@ -24,7 +24,6 @@ class PSU:
             print("set command detected!")
             parts = command.split()
             if parts[-1].isnumeric():
-                print(f'number {parts[-1]}')
                 self.state[parts[0]] = parts[-1]
                 print(f'state: {self.state}')
 
