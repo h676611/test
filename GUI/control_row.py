@@ -50,7 +50,7 @@ class ControlRow(QtWidgets.QWidget):
             row_layout.addWidget(row_widgets['current_input'])
 
             # Send Button
-            send_btn = QtWidgets.QPushButton(f"Set Row {i+1}")
+            send_btn = QtWidgets.QPushButton(f"On")
             
             # 2. Use lambda with a default variable 'row=i' to capture the current index
             send_btn.clicked.connect(lambda checked, row=i: self.on_row_submitted(row))
@@ -107,19 +107,21 @@ class ControlRow(QtWidgets.QWidget):
 
 
     def handle_status_update(self, status):
-        self.status_label.setText(f"Status: {status.get('connected' if status.get('connected') else 'disconnected')}")
+        # self.status_label.setText(f"Status: {status.get('connected' if status.get('connected') else 'disconnected')}")
         if status.get('connected'):
             self.toggle_button.setText("Disconnect")
         else:
             self.toggle_button.setText("Connect")
 
-        self.voltage_label.setText(f"Voltage: {status.get('voltage')} V")
+        # self.voltage_label.setText(f"Voltage: {status.get('voltage')} V")
 
     def handle_voltage_update(self, voltage):
-        self.voltage_label.setText(f"Voltage: {voltage} V")
+        # self.voltage_label.setText(f"Voltage: {voltage} V")
+        pass
     
     def handle_error(self, message):
-        self.status_label.setText(f"Error: {message}")
+        # self.status_label.setText(f"Error: {message}")
+        pass
 
     # 3. The function that handles the logic
     def on_row_submitted(self, row_index):
@@ -128,6 +130,8 @@ class ControlRow(QtWidgets.QWidget):
         v_val = target_row['voltage_input'].value()
         i_val = target_row['current_input'].value()
 
-        # self.send_request(generateRequest("system_request", ))
+        channel = row_index + 1
+        request = generateRequest("scpi_request", self.instrument, 1, [f'INST OUT {channel}', f'VOLT {v_val}', f'CURR {i_val}'])
+        print(f"Sending {request} to {self.instrument}")
+        self.send_request.emit(request)
         
-        print(f"Sending to {self.instrument} [Row {row_index}]: Voltage={v_val}, Current={i_val}")
