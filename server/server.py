@@ -83,7 +83,7 @@ class Server:
         self.psu_queues[address] = PSUQueue(self.psus[address], self)
 
         response = generateReply("status_update",psu.get_state(), address)
-        self.broadcast(response)
+        self.broadcast_status(response)
         self.send_response(identity, response)
     
     def disconnect_psu(self, identity, address):
@@ -94,12 +94,16 @@ class Server:
         psu.connected = False
         del self.psu_queues[address]
         response = generateReply("status_update", psu.get_state(), address)
-        self.broadcast(response)
+        self.broadcast_status(response)
         self.send_response(identity, response)
 
-    # endre på noe her for å få vekk error på server-side om en client spør om status uten å være koblet på en psu?
+    # endre på noe her for å få vekk error på server-side om en client spør om status uten å være koblet på en psu? <- da er det gjort
     def send_status(self, identity, address):
         psu = self.psus.get(address)
+        if psu is None: # om man ikke er koblet til en psu
+            response = generateReply("status_update", {"connected": False}, address) # returnerer status og sier at man ikke er connected istedenfor å gi error
+            self.send_response(identity, response) # reply
+            return
         response = generateReply("status_update", psu.get_state(), address)
         self.send_response(identity, response)
 
@@ -107,11 +111,8 @@ class Server:
         reply = {"type": "error", "message": message}
         self.send_response(identity, reply)
 
-    def broadcast(self, message):
-        # pass
-        print(f"Broadcasting {message}")
-        for client in self.clients:
-            self.send_response(client, message)
+    def broadcast_status(self, status_msg): # hjelper for å publisere status updates
+        self.pub.send_json(status_msg) # publiserer status
 
     def send_response(self, identity, response):
         print(f"Sending response {response}")

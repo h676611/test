@@ -5,7 +5,7 @@ from zmq_client import ZmqClient
 
 if __name__ == "__main__":
     client = ZmqClient()
-    address = "ASRL1::INSTR"
+    address = "ASRL2::INSTR"
 
     ctx = zmq.Context()
     sub = ctx.socket(zmq.SUB)
@@ -16,11 +16,15 @@ if __name__ == "__main__":
         while True:
             print("status:", sub.recv_json())
 
+    threading.Thread(target=listen, daemon=True).start()
+
     for reply in client.send_system(address, ["connect"], req_id=1):
         print(reply)
 
-    print(client.send_scpi(address, "VOLT 4.00", req_id=2))
-    print(client.send_scpi(address, "CURR 2.00", req_id=3))
+    print(client.send_scpi(
+        address,
+        ["INST OUT 1", "VOLT 4.00", "CURR 2.00", "OUTP 1"],
+        req_id=2,
+    ))
 
-    threading.Thread(target=listen, daemon=True).start()
     input("Press Enter to exit\n")

@@ -19,12 +19,19 @@ class PSUQueue:
     def worker(self):
         while True:
             identity, request = self.queue.get()
-            commands = request.get("payload", {})
-            for command in commands:
-                response = self.psu.query(command)
+            response = None # bare en liten init
+            commands = request.get("payload")
+            for command in commands: # gå gjennom commands
+                response = self.psu.query(command) # send til psu
                 print(f'command: {command} with response: {response}')
-            
-            print(self.psu.get_state())
+
+            state_message = { # bygg status update payload
+                "type": "status_update",
+                "address": self.address,
+                "status": self.psu.get_state()
+            }
+            self.server.broadcast_status(state_message) # publiser ny psu state til alle SUB clients
+
             reply = {
                 "id": request.get("id"),
                 "address": self.address,
@@ -39,4 +46,4 @@ class PSUQueue:
             "address": self.address,
             "status": state
         }
-        self.server.broadcast(state_message)
+        self.server.broadcast_status(state_message)
