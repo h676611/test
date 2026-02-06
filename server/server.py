@@ -91,13 +91,13 @@ class Server:
         psu = self.psus[address]
         psu.connected = False
         del self.psu_queues[address]
-        response = generateReply("status_update",psu.get_state(), address)
+        response = generateReply("status_update", psu.get_state(), address)
         self.broadcast(response)
         self.send_response(identity, response)
        
     def send_status(self, identity, address):
         psu = self.psus.get(address)
-        response = generateReply("status_update",psu.get_state(), address)
+        response = generateReply("status_update", psu.get_state(), address)
         self.send_response(identity, response)
 
     def send_error(self, identity, message):

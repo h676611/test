@@ -36,7 +36,6 @@ class ControlRow(QtWidgets.QWidget):
             # Create a dictionary to hold this row's widgets
             row_widgets = {}
 
-
             # Label
             label_text = f"{instrument} - Ch {i+1}" if num_rows > 1 else instrument
             row_widgets['label'] = QtWidgets.QLabel(label_text)
@@ -78,22 +77,6 @@ class ControlRow(QtWidgets.QWidget):
         request = generateRequest("scpi_request", self.instrument, request_id, commands)
         self.send_request.emit(request)
         return request_id
-    
-    def on_set_voltage(self):
-        voltage = self.voltage_input.text()
-        try:
-            voltage_val = float(voltage)
-        except ValueError:
-            self.status_label.setText("Invalid voltage")
-            return
-
-        if not (0.1 <= voltage_val <= 30.0):
-            self.status_label.setText("Voltage out of range")
-            return
-
-        command = f"VOLT {voltage}"
-        self.status_label.setText("Setting Voltage…")
-        self.send_scpi_command(command)
 
     def on_toggle(self):
 
@@ -121,26 +104,22 @@ class ControlRow(QtWidgets.QWidget):
             self.handle_error(reply.get("message"))
         elif reply.get("type") == "status_update":
             self.handle_status_update(reply.get("status"))
+        # TODO
         # else:
             # self.status_label.setText(f"Status: {reply.get('status')}")
 
 
     def handle_status_update(self, status):
-        # self.status_label.setText(f"Status: {status.get('connected' if status.get('connected') else 'disconnected')}")
-        # if status.get('connected'):
-        #     self.toggle_button.setText("Stop")
-        # else:
-        #     self.toggle_button.setText("Start")
+        # TODO
+
         pass
 
-        # self.voltage_label.setText(f"Voltage: {status.get('voltage')} V")
-
     def handle_voltage_update(self, voltage):
-        # self.voltage_label.setText(f"Voltage: {voltage} V")
+        # TODO
         pass
     
     def handle_error(self, message):
-        # self.status_label.setText(f"Error: {message}")
+        # TODO
         pass
 
     # 3. The function that handles the logic
