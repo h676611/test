@@ -25,7 +25,7 @@ class PSU:
 
         if any(command.startswith(cmd) for cmd in self.SET_COMMANDS):
             try:
-                match = re.match(r"(.+)\s+(\d+(?:\.\d*)?|\.\d+)$", command)
+                match = re.match(r"(.+)\s+(-?\d+(?:\.\d*)?|-?\.\d+)$", command)
                 name = match.group(1)
 
                 value = float(match.group(2))
