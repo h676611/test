@@ -39,10 +39,8 @@ class PSU:
 
                 self.states[self.selected_channel][name] = value
 
-
             except Exception as e:
                 print(f'exeption {e}, {command}')
-
 
         print(f"Query PSU with command: {command} response: {response}")
         return response
