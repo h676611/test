@@ -23,7 +23,8 @@ class PSUQueue:
             for command in commands:
                 response = self.psu.query(command)
                 print(f'command: {command} with response: {response}')
-                
+            
+            print(self.psu.get_state())
             reply = {
                 "id": request.get("id"),
                 "address": self.address,

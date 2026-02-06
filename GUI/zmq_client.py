@@ -27,7 +27,6 @@ class ZmqClient(QtCore.QObject):
             try:
                 reply = self.socket.recv_json(flags=zmq.NOBLOCK)
                 self.reply_received.emit(reply)
-                print(f"ZmqClient received: {reply}")
             except zmq.Again:
                 time.sleep(0.01)
 

@@ -10,6 +10,8 @@ class ControlRow(QtWidgets.QWidget):
     def __init__(self, instrument, parent=None):
         super().__init__(parent)
         self.instrument = instrument
+
+        self.connected = False
         
         # Main container
         main_layout = QtWidgets.QVBoxLayout(self)
@@ -20,10 +22,12 @@ class ControlRow(QtWidgets.QWidget):
         num_rows = 4 if instrument == "ASRL1::INSTR" else 1
 
         # connect button
-        self.toggle_button = QtWidgets.QPushButton("Connect")
+        self.toggle_button = QtWidgets.QPushButton("Start")
         self.toggle_button.clicked.connect(self.on_toggle)
         main_layout.addWidget(self.toggle_button)
 
+        self.state_label = QtWidgets.QLabel("State")
+        main_layout.addWidget(self.state_label)
 
 
         for i in range(num_rows):
@@ -49,12 +53,19 @@ class ControlRow(QtWidgets.QWidget):
             row_widgets['current_input'].setRange(-10., 10.)
             row_layout.addWidget(row_widgets['current_input'])
 
+            # Output on/off
+            row_widgets['on_off_channel_toggle'] = QtWidgets.QCheckBox()
+            row_layout.addWidget(row_widgets["on_off_channel_toggle"])
+
             # Send Button
-            send_btn = QtWidgets.QPushButton(f"On")
+            send_btn = QtWidgets.QPushButton(f"Send")
             
             # 2. Use lambda with a default variable 'row=i' to capture the current index
-            send_btn.clicked.connect(lambda checked, row=i: self.on_row_submitted(row))
-            
+            # send_btn.clicked.connect(lambda checked, row=i: self.on_row_submitted(row, row_widgets["on_off_channel_toggle"].isChecked()))
+            send_btn.clicked.connect(
+                lambda checked, row=i, toggle=row_widgets["on_off_channel_toggle"]:
+                    self.on_row_submitted(row, toggle.isChecked())
+            )
             row_layout.addWidget(send_btn)
 
             # Store the dictionary in our list and add layout to screen
@@ -85,19 +96,27 @@ class ControlRow(QtWidgets.QWidget):
         self.send_scpi_command(command)
 
     def on_toggle(self):
-        
+
         self.send_request.emit({
-            "type": "system_request",  # or "scpi" depending on action
-            "payload": ["connect" if self.toggle_button.text() == "Connect" else "disconnect"],
+            "type": "system_request",
+            "payload": ["disconnect" if self.connected else "connect"],
             "address": self.instrument
         })
-        self.toggle_button.setText('Disconnect')
+        if self.connected:
+            self.toggle_button.setText("Start")
+        else:
+            self.toggle_button.setText("Stop")
+
+        print(f"button is: {self.connected}")
+        self.connected = not self.connected
 
     @QtCore.pyqtSlot(dict)
     def handle_reply(self, reply):
         if reply.get("address") != self.instrument:
             return
 
+        print(f'received reply: {reply}')
+        
         if reply.get("status") == "error":
             self.handle_error(reply.get("message"))
         elif reply.get("type") == "status_update":
@@ -108,10 +127,11 @@ class ControlRow(QtWidgets.QWidget):
 
     def handle_status_update(self, status):
         # self.status_label.setText(f"Status: {status.get('connected' if status.get('connected') else 'disconnected')}")
-        if status.get('connected'):
-            self.toggle_button.setText("Disconnect")
-        else:
-            self.toggle_button.setText("Connect")
+        # if status.get('connected'):
+        #     self.toggle_button.setText("Stop")
+        # else:
+        #     self.toggle_button.setText("Start")
+        pass
 
         # self.voltage_label.setText(f"Voltage: {status.get('voltage')} V")
 
@@ -124,14 +144,15 @@ class ControlRow(QtWidgets.QWidget):
         pass
 
     # 3. The function that handles the logic
-    def on_row_submitted(self, row_index):
+    def on_row_submitted(self, row_index, checked):
         # Access the specific widgets using the row_index
+        
         target_row = self.rows[row_index]
         v_val = target_row['voltage_input'].value()
         i_val = target_row['current_input'].value()
-
         channel = row_index + 1
-        request = generateRequest("scpi_request", self.instrument, 1, [f'INST OUT {channel}', f'VOLT {v_val}', f'CURR {i_val}'])
-        print(f"Sending {request} to {self.instrument}")
+        # print(f'checked is {checked}')
+        request = generateRequest("scpi_request", self.instrument, 1, [f'INST OUT {channel}', f'VOLT {v_val}', f'CURR {i_val}', f'OUTP {1 if checked else 0}'])
+        # print(f"Sending {request} to {self.instrument}")
         self.send_request.emit(request)
         
