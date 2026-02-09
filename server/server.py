@@ -1,9 +1,12 @@
 import os
 import pyvisa
 import zmq
-from psu_queue import PSUQueue
-from PSU import PSU
-from requestKomponents import generate_reply, generate_status_update
+from .psu_queue import PSUQueue
+from .PSU import PSU
+from .requestKomponents import generate_reply, generate_status_update
+from logger import setup_logger
+
+logger = setup_logger(name="server")
 
 class Server:
     """A server to handle client requests for PSU control via SCPI commands over ZeroMQ."""
@@ -20,8 +23,7 @@ class Server:
         self.pub.bind("tcp://*:5556")
 
     def start(self):
-        print("Server started")
-        print("Waiting for requests...")
+        logger.info("Server started")
 
         while True:
             identity = self.socket.recv()
@@ -30,20 +32,21 @@ class Server:
             try:
                 self.handle_request(identity, request)
             except Exception as e:
-                print(f"Error handling request: {e}")
+                logger.error(f"Couldn't handle request. error: {e}")
                 self.send_error(identity=identity, message=str(e), address=request.get("address"))
 
     def handle_request(self, identity, request):
         msg_type = request.get("type")
         self.clients.add(identity)
 
-        print(f"Received request: {request}")
+        logger.info(f"Received request: {request}")
 
         if msg_type == "system_request":
             self.handle_system(identity, request)
         elif msg_type == "scpi_request":
             self.handle_scpi(identity, request)
         else:
+            logger.error(f"Uknown request type {msg_type}")
             raise ValueError("Unknown request type")
         
     def handle_system(self, identity, request):
@@ -63,17 +66,20 @@ class Server:
             for action in handler:
                 action(identity,address)
         else:
+            logger.error(f"Uknown system action {action}")
             self.send_error(identity=identity,message= f"Unknown system action: {action}", address=address)
 
     def handle_scpi(self, identity, request):
         address = request.get("address")
 
         if address not in self.psu_queues:
+            logger.error(f"Uknown instrument address {address}")
             raise ValueError(f"Unknown instrument address: {address}")
         self.psu_queues[address].add_command(identity, request)
 
     def connect_psu(self, identity, address):
         if address in self.psu_queues:
+            logger.error(f"PSU {address} already connected")
             self.send_error(identity=identity, message="PSU already connected", address=address)
             return
         
@@ -88,6 +94,7 @@ class Server:
     
     def disconnect_psu(self, identity, address):
         if address not in self.psu_queues:
+            logger.error(f"PSU {address} not connected")
             self.send_error(identity, "PSU not connected", address)
             return
         psu = self.psus[address]
@@ -108,12 +115,13 @@ class Server:
         self.send_response(identity, reply)
 
     def broadcast(self, message):
-        # pass
-        print(f"Broadcasting {message}")
+        
+        logger.info(f"Broadcasting status update {message}")
+
         for client in self.clients:
             self.send_response(client, message)
 
     def send_response(self, identity, response):
-        print(f"Sending response {response}")
+        logger.info(f'Sending response {response}')
         self.socket.send(identity, zmq.SNDMORE)
         self.socket.send_json(response)

@@ -1,4 +1,7 @@
 import re
+from logger import setup_logger
+
+logger = setup_logger("PSU")
 class PSU:
     """Represents a Power Supply Unit with SCPI command handling."""
     def __init__(self, resource):
@@ -22,6 +25,8 @@ class PSU:
 
     def query(self, command: str) -> str:
         response = self.resource.query(command)
+        logger.info(f"Querying PSU with command: {command}")
+        logger.info(f"Response: {response}")
 
         if any(command.startswith(cmd) for cmd in self.SET_COMMANDS):
             try:
@@ -40,9 +45,8 @@ class PSU:
                 self.states[self.selected_channel][name] = value
 
             except Exception as e:
-                print(f'exeption {e}, {command}')
+                logger.error(f"exeption {e} for {command}")
 
-        print(f"Query PSU with command: {command} response: {response}")
         return response
 
     def get_state(self):

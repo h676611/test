@@ -2,6 +2,9 @@ import json
 import uuid
 from PyQt5 import QtWidgets, QtCore
 from server.requestKomponents import generate_request
+from logger import setup_logger
+
+logger = setup_logger("Control row")
 
 class ControlRow(QtWidgets.QWidget):
     """A GUI control row for a single instrument, allowing connection management and SCPI command sending."""
@@ -96,22 +99,23 @@ class ControlRow(QtWidgets.QWidget):
     def handle_reply(self, request_id, reply):
         if reply.get("address") != self.instrument:
             return
-        print(f'received reply: {reply} with request_id: {request_id}')
+        logger.info(f"received reply: {reply}")
+        # TODO handle replies
         
 
     @QtCore.pyqtSlot(dict)
     def handle_status_update(self, msg):
         if msg.get("address") != self.instrument:
             return
-        print(f'received status update: {msg}')
-        # TODO
+        logger.info(f'received status update: {msg}')
+        # TODO handle status updates
     
     @QtCore.pyqtSlot(dict)
     def handle_error(self, message):
         if message.get("address") != self.instrument:
             return
-        print(f'error: {message}')
-        # TODO
+        logger.error(f"received error: {message}")
+        # TODO handle errors
 
     # 3. The function that handles the logic
     def on_row_submitted(self, row_index, checked):
@@ -120,9 +124,7 @@ class ControlRow(QtWidgets.QWidget):
         v_val = target_row['voltage_input'].value()
         i_val = target_row['current_input'].value()
         channel = row_index + 1
-        # print(f'checked is {checked}')
         request = generate_request(type="scpi_request", address=self.instrument,
                                     payload=[f'INST OUT {channel}', f'VOLT {v_val}', f'CURR {i_val}', f'OUTP {1 if checked else 0}'])
-        # print(f"Sending {request} to {self.instrument}")
         self.send_request.emit(request)
         

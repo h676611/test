@@ -1,5 +1,5 @@
 import threading
-from server import Server
+from .server import Server
 
 if __name__ == "__main__":
     server = Server()
@@ -8,7 +8,6 @@ if __name__ == "__main__":
     server_thread = threading.Thread(target=server.start, daemon=True)
     server_thread.start()
 
-    print("Server running. Waiting for clients...")
 
     try:
         while True:

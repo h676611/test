@@ -1,5 +1,8 @@
 from PyQt5 import QtCore
 import zmq, threading, time
+from logger import setup_logger
+
+logger = setup_logger(name="zmq_client")
 
 class ZmqClient(QtCore.QObject):
     """A ZeroMQ client integrated with PyQt5 for asynchronous communication with the server."""
@@ -30,7 +33,7 @@ class ZmqClient(QtCore.QObject):
 
         self.socket.send_json(request)
 
-        print(f'sending request: {request} with request_id: {request_id}')
+        logger.info(f"Sending request: {request}")
 
     def _poll_loop(self):
         while self._running:
@@ -39,7 +42,7 @@ class ZmqClient(QtCore.QObject):
                 msg_type = msg.get("type")
                 request_id = msg.get("request_id")
 
-                print(f'zmq client received: {msg}')
+                logger.info(f'received: {msg}')
 
                 if msg_type == "scpi_reply" or msg_type == "system_reply":
                     if request_id in self._pending:
@@ -47,7 +50,7 @@ class ZmqClient(QtCore.QObject):
                         self.reply_received.emit(request_id, msg)
                     else:
                         # TODO logger
-                        print(f'something wrong')
+                        logger.error(f'received reply with wrong request id')
                 elif msg_type == "status_update":
                     self.status_update_received.emit(msg)
                 elif msg_type == "error":

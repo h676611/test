@@ -1,7 +1,10 @@
 import threading
 import queue
 import json
-from requestKomponents import generate_status_update, generate_reply
+from .requestKomponents import generate_status_update, generate_reply
+from logger import setup_logger
+
+logger = setup_logger("PSUqueue")
 
 class PSUQueue:
     """Manages a queue of SCPI commands for a PSU to ensure sequential processing."""
@@ -23,14 +26,9 @@ class PSUQueue:
             commands = request.get("payload", {})
             for command in commands:
                 response = self.psu.query(command)
-                print(f'command: {command} with response: {response}')
+                logger.info(f"Querying command: {command}")
+                logger.info(f"Response: {response}")
             
-            print(self.psu.get_state())
-            # reply = {
-            #     "request_id": request.get("request_id"),
-            #     "address": self.address,
-            #     "response": response
-            # }
             reply = generate_reply(type="scpi_reply", address=self.address, response=response)
             reply["request_id"] = request.get("request_id")
             self.server.send_response(identity, reply)
