@@ -3,7 +3,7 @@ import pyvisa
 import zmq
 from psu_queue import PSUQueue
 from PSU import PSU
-from requestKomponents import generateReply
+from requestKomponents import generate_reply, generate_status_update
 
 class Server:
     """A server to handle client requests for PSU control via SCPI commands over ZeroMQ."""
@@ -29,7 +29,7 @@ class Server:
                 self.handle_request(identity, request)
             except Exception as e:
                 print(f"Error handling request: {e}")
-                self.send_error(identity, str(e))
+                self.send_error(identity=identity, message=str(e), address=request.get("address"))
 
     def handle_request(self, identity, request):
         msg_type = request.get("type")
@@ -61,7 +61,7 @@ class Server:
             for action in handler:
                 action(identity,address)
         else:
-            self.send_error(identity, f"Unknown system action: {action}")
+            self.send_error(identity=identity,message= f"Unknown system action: {action}", address=address)
 
     def handle_scpi(self, identity, request):
         address = request.get("address")
@@ -72,7 +72,7 @@ class Server:
 
     def connect_psu(self, identity, address):
         if address in self.psu_queues:
-            self.send_error(identity, "PSU already connected")
+            self.send_error(identity=identity, message="PSU already connected", address=address)
             return
         
         psu = PSU(self.rm.open_resource(address))
@@ -80,28 +80,28 @@ class Server:
         self.psus[address] = psu
         self.psu_queues[address] = PSUQueue(self.psus[address], self)
 
-        response = generateReply("status_update",psu.get_state(), address)
+        response = generate_status_update(psu.get_state(), address)
         self.broadcast(response)
         self.send_response(identity, response)
     
     def disconnect_psu(self, identity, address):
         if address not in self.psu_queues:
-            self.send_error(identity, "PSU not connected")
+            self.send_error(identity, "PSU not connected", address)
             return
         psu = self.psus[address]
         psu.connected = False
         del self.psu_queues[address]
-        response = generateReply("status_update", psu.get_state(), address)
+        response = generate_status_update(state=psu.get_state(), address=address)
         self.broadcast(response)
         self.send_response(identity, response)
        
     def send_status(self, identity, address):
         psu = self.psus.get(address)
-        response = generateReply("status_update", psu.get_state(), address)
+        response = generate_status_update(state=psu.get_state(), address=address)
         self.send_response(identity, response)
 
-    def send_error(self, identity, message):
-        reply = {"type": "error", "message": message}
+    def send_error(self, identity, message, address):
+        reply = generate_reply(type="error", address=address, response=message)
         self.send_response(identity, reply)
 
     def broadcast(self, message):

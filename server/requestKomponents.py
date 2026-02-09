@@ -1,18 +1,30 @@
-def generateRequest(type, address, id, payload=[]):
+def generate_request(type, address, payload=[]):
     reply = {
         "type": type,
         "address": address,
-        "id": id,
         "payload": payload
     }
     if type == "system_request" or type ==  "scpi_request":
         return reply
-    return "Error: Type not system_request or scpi_request"
+    else:
+        raise TypeError(f"{type} is not a valid reply type")
+
+
+def generate_reply(type, address, response):
+    reply = {
+        "type": type,
+        "address": address,
+        "response": response
+    }
+    if type == "system_reply" or type == "scpi_reply" or type == "error":
+        return reply
+    else:
+        raise TypeError(f"{type} is not a valid reply type")
         
 
-def generateReply(type, state, address):
+def generate_status_update(state, address):
     reply = {
-        "type": type, 
+        "type": "status_update", 
         "status": state, 
         "address": address
         }
