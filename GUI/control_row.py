@@ -1,7 +1,7 @@
 import json
 import uuid
 from PyQt5 import QtWidgets, QtCore
-from server.requestKomponents import generateRequest
+from server.requestKomponents import generate_request
 
 class ControlRow(QtWidgets.QWidget):
     """A GUI control row for a single instrument, allowing connection management and SCPI command sending."""
@@ -74,7 +74,7 @@ class ControlRow(QtWidgets.QWidget):
 
     def send_scpi_command(self, commands):
         request_id = str(uuid.uuid4())
-        request = generateRequest("scpi_request", self.instrument, request_id, commands)
+        request = generate_request(type="scpi_request", payload=commands, address=self.instrument, request_id=request_id)
         self.send_request.emit(request)
         return request_id
 
@@ -90,48 +90,39 @@ class ControlRow(QtWidgets.QWidget):
         else:
             self.toggle_button.setText("Stop")
 
-        print(f"button is: {self.connected}")
         self.connected = not self.connected
 
-    @QtCore.pyqtSlot(dict)
-    def handle_reply(self, reply):
+    @QtCore.pyqtSlot(int, dict)
+    def handle_reply(self, request_id, reply):
         if reply.get("address") != self.instrument:
             return
-
-        print(f'received reply: {reply}')
+        print(f'received reply: {reply} with request_id: {request_id}')
         
-        if reply.get("status") == "error":
-            self.handle_error(reply.get("message"))
-        elif reply.get("type") == "status_update":
-            self.handle_status_update(reply.get("status"))
+
+    @QtCore.pyqtSlot(dict)
+    def handle_status_update(self, msg):
+        if msg.get("address") != self.instrument:
+            return
+        print(f'received status update: {msg}')
         # TODO
-        # else:
-            # self.status_label.setText(f"Status: {reply.get('status')}")
-
-
-    def handle_status_update(self, status):
-        # TODO
-
-        pass
-
-    def handle_voltage_update(self, voltage):
-        # TODO
-        pass
     
+    @QtCore.pyqtSlot(dict)
     def handle_error(self, message):
+        if message.get("address") != self.instrument:
+            return
+        print(f'error: {message}')
         # TODO
-        pass
 
     # 3. The function that handles the logic
     def on_row_submitted(self, row_index, checked):
         # Access the specific widgets using the row_index
-        
         target_row = self.rows[row_index]
         v_val = target_row['voltage_input'].value()
         i_val = target_row['current_input'].value()
         channel = row_index + 1
         # print(f'checked is {checked}')
-        request = generateRequest("scpi_request", self.instrument, 1, [f'INST OUT {channel}', f'VOLT {v_val}', f'CURR {i_val}', f'OUTP {1 if checked else 0}'])
+        request = generate_request(type="scpi_request", address=self.instrument,
+                                    payload=[f'INST OUT {channel}', f'VOLT {v_val}', f'CURR {i_val}', f'OUTP {1 if checked else 0}'])
         # print(f"Sending {request} to {self.instrument}")
         self.send_request.emit(request)
         

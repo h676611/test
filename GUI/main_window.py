@@ -1,7 +1,6 @@
 from PyQt5 import QtWidgets, QtCore
 from GUI.zmq_client import ZmqClient
 from GUI.control_row import ControlRow
-from server.requestKomponents import generateRequest
 
 class MainWindow(QtWidgets.QMainWindow):
     """Main application window for PSU control GUI."""
@@ -27,6 +26,8 @@ class MainWindow(QtWidgets.QMainWindow):
         for row in self.control_rows:
             row.send_request.connect(self.zmq_client.send)
             self.zmq_client.reply_received.connect(row.handle_reply)
+            self.zmq_client.status_update_received.connect(row.handle_status_update)
+            self.zmq_client.error_received.connect(row.handle_error)
 
         # Request initial status to register GUI with server
         # for psu in self.psus:
