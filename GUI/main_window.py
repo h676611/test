@@ -10,7 +10,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setWindowTitle("PSU Control GUI")
         self.setGeometry(100, 100, 600, 400)
 
-        self.psus = ["ASRL1::INSTR", "ASRL2::INSTR"]
+        self.psus = ["ASRL1::INSTR", "ASRL2::INSTR", "ASRL3::INSTR"]
         self.control_rows = []
 
         # ZMQ Client

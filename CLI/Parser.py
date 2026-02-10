@@ -6,6 +6,19 @@ class Parser(argparse.ArgumentParser):
         super().__init__(description="CLI Client Parser")
         
         # Add your specific arguments here
-        self.add_argument('--host', type=str, default='127.0.0.1', help='Server IP')
-        self.add_argument('--port', type=int, default=5555, help='Server Port')
-        self.add_argument('--command', type=str, required=True, help='Command to execute')
+        self.add_argument(
+            '--scpi',
+            nargs=2,
+            type=str,
+            required=False,
+            help='Command to execute'
+        )
+
+        self.add_argument(
+            '--system',
+            '-sys',
+            nargs=1,
+            type=str,
+            help='Send system request'
+        )
+

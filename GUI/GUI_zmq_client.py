@@ -38,7 +38,6 @@ class ZmqClient(QtCore.QObject):
     def _poll_loop(self):
         poller = zmq.Poller() # lag poller for flere sockets
         poller.register(self.socket, zmq.POLLIN) # følg med DEALER
-        poller.register(self.sub_socket, zmq.POLLIN) # følg med SUB (broadcast updates)
         while self._running:
             try:
                 msg = self.socket.recv_json(flags=zmq.NOBLOCK)
