@@ -1,5 +1,5 @@
 from PyQt5 import QtWidgets, QtCore
-from GUI.zmq_client import ZmqClient
+from GUI.GUI_zmq_client import ZmqClient
 from GUI.control_row import ControlRow
 
 class MainWindow(QtWidgets.QMainWindow):
