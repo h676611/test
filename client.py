@@ -1,26 +1,9 @@
 import threading
-
 import zmq
 import random
 import json
 from server.requestKomponents import generateRequest
-
-class Client:
-    def __init__(self, address="tcp://localhost:5555"):
-        self.context = zmq.Context()
-        self.socket = self.context.socket(zmq.DEALER)
-        self.socket.connect(address)
-
-    def send_request(self, request):
-        self.socket.send_json(request)
-        reply = []
-        i = 0
-        while i < len(request["payload"]):
-            i +=1
-            reply.append(self.socket.recv_json())
-        return reply
-
-        
+from zmq_client import ZmqClient
 
 if __name__ == "__main__":
     client = ZmqClient()
@@ -29,46 +12,21 @@ if __name__ == "__main__":
     ctx = zmq.Context()
     sub = ctx.socket(zmq.SUB)
     sub.connect("tcp://localhost:5556")
-    sub.setsockopt_string(zmq.SUBSCRIBE, "") # endre til "ASRL1" om de bare skal få updates på psuen de er på
+    sub.setsockopt_string(zmq.SUBSCRIBE, "")  # endre til "ASRL1" om de bare skal få updates på psuen de er på
 
     def listen():
         while True:
             print("status:", sub.recv_json())
 
+    threading.Thread(target=listen, daemon=True).start()
+
     for reply in client.send_system(address, ["connect"], req_id=1):
         print(reply)
 
-    print(client.send_scpi(address, "VOLT 5.00", req_id=2))
-    print(client.send_scpi(address, "CURR 1.00", req_id=3))
+    print(client.send_scpi(
+        address,
+        ["INST OUT 1", "VOLT 6.00", "CURR 2.00", "OUTP 1"],
+        req_id=2,
+    ))
 
-    threading.Thread(target=listen, daemon=True).start()
     input("Press Enter to exit\n")
-
-    # # connect + status
-    # req = generateRequest("system_request", address, 1, ["connect", "status"])
-    # for reply in client.send_request(req):
-    #     print(reply)
-    #
-    # req_status = generateRequest("system_request", address, 1, ["status"])
-    #
-    # # set voltage
-    # client.socket.send_json({
-    #     "type": "scpi_request",
-    #     "address": address,
-    #     "id": 2,
-    #     "payload": {"command": "VOLT 5.00"}
-    # })
-    # print(client.socket.recv_json())
-    # for reply in client.send_request(req_status):
-    #     print(reply)
-    #
-    # # set current
-    # client.socket.send_json({
-    #     "type": "scpi_request",
-    #     "address": address,
-    #     "id": 3,
-    #     "payload": {"command": "CURR 1.00"}
-    # })
-    # print(client.socket.recv_json())
-    # for reply in client.send_request(req_status):
-    #     print(reply)

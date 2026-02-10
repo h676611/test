@@ -108,7 +108,30 @@ class ControlRow(QtWidgets.QWidget):
         if msg.get("address") != self.instrument:
             return
         logger.info(f'received status update: {msg}')
-        # TODO handle status updates
+
+        # TODO
+        status = None
+
+        
+        if not isinstance(status, dict): # bare håndter dict status payloads og ignorerer alt annet
+            return
+        for index, row in enumerate(self.rows): # gå igjennom kanaler
+            channel = index + 1
+            channel_state = status.get(channel) # read channel state
+            if channel_state is None:
+                channel_state = status.get(str(channel))
+            if not isinstance(channel_state, dict): # skip om kanalen ikke har status
+                continue
+            if "VOLT" in channel_state:
+                row["voltage_input"].setValue(channel_state["VOLT"]) # update gui volt verdi (burde vi lage ny row sånn at verdien alltid står til og med om man begynner å endre på verdiene uten å sende de?)
+            if "CURR" in channel_state:
+                row["current_input"].setValue(channel_state["CURR"]) # update gui curr verdi
+            if "OUTP" in channel_state:
+                row["on_off_channel_toggle"].setChecked(bool(channel_state["OUTP"])) # sync sånn at checkboxen viser riktig
+
+    def handle_voltage_update(self, voltage):
+        # TODO
+        pass
     
     @QtCore.pyqtSlot(dict)
     def handle_error(self, message):

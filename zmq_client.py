@@ -27,6 +27,6 @@ class ZmqClient:
             "type": "scpi_request",
             "address": address,
             "id": req_id,
-            "payload": {"command": command}
+            "payload": command
         })
         return self.recv()

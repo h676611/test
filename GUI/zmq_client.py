@@ -11,7 +11,7 @@ class ZmqClient(QtCore.QObject):
     status_update_received = QtCore.pyqtSignal(dict)
     error_received = QtCore.pyqtSignal(dict)
 
-    def __init__(self, address="tcp://localhost:5555"):
+    def __init__(self, address="tcp://localhost:5555", status_address="tcp://localhost:5556"):
         super().__init__()
         self.context = zmq.Context()
         self.socket = self.context.socket(zmq.DEALER)
@@ -36,6 +36,9 @@ class ZmqClient(QtCore.QObject):
         logger.info(f"Sending request: {request}")
 
     def _poll_loop(self):
+        poller = zmq.Poller() # lag poller for flere sockets
+        poller.register(self.socket, zmq.POLLIN) # følg med DEALER
+        poller.register(self.sub_socket, zmq.POLLIN) # følg med SUB (broadcast updates)
         while self._running:
             try:
                 msg = self.socket.recv_json(flags=zmq.NOBLOCK)
@@ -62,3 +65,6 @@ class ZmqClient(QtCore.QObject):
     def stop(self):
         self._running = False
         self._poll_thread.join()
+        # lukker begge sockets når gui lukkes
+        self.socket.close()
+        self.sub_socket.close()

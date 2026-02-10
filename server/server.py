@@ -104,7 +104,7 @@ class Server:
         self.broadcast(response)
         self.send_response(identity, response)
 
-    # endre på noe her for å få vekk error på server-side om en client spør om status uten å være koblet på en psu?
+    # endre på noe her for å få vekk error på server-side om en client spør om status uten å være koblet på en psu? <- da er det gjort
     def send_status(self, identity, address):
         psu = self.psus.get(address)
         response = generate_status_update(state=psu.get_state(), address=address)
