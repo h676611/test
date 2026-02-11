@@ -83,11 +83,9 @@ class ControlRow(QtWidgets.QWidget):
 
     def on_toggle(self):
 
-        self.send_request.emit({
-            "type": "system_request",
-            "payload": ["disconnect" if self.connected else "connect"],
-            "address": self.instrument
-        })
+
+        request = generate_request(type="system_request", address=self.instrument, payload=["disconnect" if self.connected else "connect"])
+        self.send_request.emit(request)
         if self.connected:
             self.toggle_button.setText("Start")
         else:
@@ -110,9 +108,9 @@ class ControlRow(QtWidgets.QWidget):
         logger.info(f'received status update: {msg}')
 
         # TODO
-        status = None
+        status = msg.get("status")
 
-        
+
         if not isinstance(status, dict): # bare håndter dict status payloads og ignorerer alt annet
             return
         for index, row in enumerate(self.rows): # gå igjennom kanaler

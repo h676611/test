@@ -43,6 +43,7 @@ class PSU:
                     return response
 
                 self.states[self.selected_channel][name] = value
+                
 
             except Exception as e:
                 logger.error(f"exeption {e} for {command}")
