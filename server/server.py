@@ -5,6 +5,7 @@ from .psu_queue import PSUQueue
 from .PSU import PSU
 from .requestKomponents import generate_reply, generate_status_update
 from logger import setup_logger
+from .Translate import HMP4040_dic, get_dic_for_PSU
 
 logger = setup_logger(name="server")
 
@@ -36,18 +37,28 @@ class Server:
                 self.send_error(identity=identity, message=str(e), address=request.get("address"))
 
     def handle_request(self, identity, request):
-        msg_type = request.get("type")
-        self.clients.add(identity)
+        # msg_type = request.get("type")
+        # self.clients.add(identity)
 
-        logger.info(f"Received request: {request}")
+        # logger.info(f"Received request: {request}")
 
-        if msg_type == "system_request":
-            self.handle_system(identity, request)
-        elif msg_type == "scpi_request":
-            self.handle_scpi(identity, request)
-        else:
-            logger.error(f"Uknown request type {msg_type}")
-            raise ValueError("Unknown request type")
+        # if msg_type == "system_request":
+        #     self.handle_system(identity, request)
+        # elif msg_type == "scpi_request":
+        #     self.handle_scpi(identity, request)
+        # else:
+        #     logger.error(f"Uknown request type {msg_type}")
+        #     raise ValueError("Unknown request type")
+        #Nå kommer requestene på denne formaten: set-channel 1, set-output 1
+        #Vi må oversette den til en ny request som vi kan sende til PyVisa.
+        request = {"name": "HMP4040", "payload": ["set_channel 1", "set_output 1"]}
+        pyvisa_request = []
+        #Må hente riktig dic for type psu
+        dic = get_dic_for_PSU(request["name"])
+        for s in request["payload"]:
+            #Iterer over requesten og se om den er like noen av verdiene i en json fil vi har som vi kan bruke til å oversette requestene.
+            pyvisa_request.append(dic[s.split(" ")])
+        print(pyvisa_request)
         
     def handle_system(self, identity, request):
         address = request.get("address")

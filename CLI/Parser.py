@@ -31,6 +31,7 @@ class Parser(argparse.ArgumentParser):
             dest="set_channel_voltage",
             nargs=2,
             metavar=('CHANNEL', 'VOLTAGE'),
-            help="set VOLTAGE at specified CHANNEL"
+            help="set VOLTAGE at specified CHANNEL",
+            default=argparse.SUPPRESS,
         )
 

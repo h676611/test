@@ -42,5 +42,5 @@ if __name__ == "__main__":
     # main(['--command', 'status'])
     zmq_client = ZMQClient()
     request = main()
-    # reply = zmq_client.send_request(request)
+    reply = zmq_client.send_request(request)
     # print(reply)
