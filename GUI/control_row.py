@@ -75,23 +75,34 @@ class ControlRow(QtWidgets.QWidget):
             main_layout.addLayout(row_layout)
 
 
-    def send_scpi_command(self, commands):
-        request_id = str(uuid.uuid4())
-        request = generate_request(type="scpi_request", payload=commands, address=self.instrument, request_id=request_id)
-        self.send_request.emit(request)
-        return request_id
-
     def on_toggle(self):
-
-
-        request = generate_request(type="system_request", address=self.instrument, payload=["disconnect" if self.connected else "connect"])
-        self.send_request.emit(request)
-        if self.connected:
-            self.toggle_button.setText("Start")
+        if not self.connected:
+            self.start()
         else:
-            self.toggle_button.setText("Stop")
+            self.stop()
 
-        self.connected = not self.connected
+    def start(self):
+
+        # TODO generate request
+        request = {
+            'name': self.instrument,
+            'payload': ['connect']
+        }
+        self.send_request.emit(request)
+        self.toggle_button.setText("Stop")
+        self.connected = True
+
+
+    def stop(self):
+
+        # TODO generate request
+        request = {
+            'name': self.instrument,
+            'payload': ['disconnect']
+        }
+        self.send_request.emit(request)
+        self.toggle_button.setText("Start")
+        self.connected = False
 
     @QtCore.pyqtSlot(int, dict)
     def handle_reply(self, request_id, reply):
@@ -139,13 +150,24 @@ class ControlRow(QtWidgets.QWidget):
         # TODO handle errors
 
     # 3. The function that handles the logic
-    def on_row_submitted(self, row_index, checked):
+    def on_row_submitted(self, row_index, output_checked):
         # Access the specific widgets using the row_index
         target_row = self.rows[row_index]
         v_val = target_row['voltage_input'].value()
         i_val = target_row['current_input'].value()
         channel = row_index + 1
-        request = generate_request(type="scpi_request", address=self.instrument,
-                                    payload=[f'INST OUT {channel}', f'VOLT {v_val}', f'CURR {i_val}', f'OUTP {1 if checked else 0}'])
+        
+
+
+        # TODO generate request
+        payload = [f'set_channel {channel}', f'set_voltage {v_val}', f'set_current {i_val}', f'set_output {1 if output_checked else 0}']
+
+        request = {
+            "name": self.instrument,
+            "payload": payload
+        }
+
+        logger.debug(f'sending request: {request}')
+
         self.send_request.emit(request)
         
