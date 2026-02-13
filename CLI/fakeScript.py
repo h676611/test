@@ -6,24 +6,23 @@ from server.requestKomponents import generate_request
 import zmq
 
 def main(inargs=None):
-    # If no inargs are passed (default), parse_args() looks at sys.argv
     parser = Parser()
     args = parser.parse_args(inargs)
-    request = generate_request(type="scpi_request", address="ASRL1::INSTR")
+    request = generate_request(type="system_request", address="ASRL1::INSTR")
     request['request_id'] = 1
-    payload = request["payload"]
-    print(f"Parsed Arguments: {args}")
+    payload = []
     for arg in vars(args):
-        # print(f'{str(getattr(args, arg))}')
-        temp = getattr(args, arg)
-        text = temp[0] + ' ' + temp[1]
-        print(text)
-        request["payload"].append(text)
+        if arg != " ":
+            temp =  getattr(args, arg)
+            text = "" 
+            for char in temp:
+                text += char + ' '
+            text = text.removesuffix(' ')
+            payload.append(arg + ' ' + text)
 
+    request["payload"] = payload
     print(f'request: {request}')
     return request
-    
-
 
 
 class ZMQClient:
@@ -43,5 +42,5 @@ if __name__ == "__main__":
     # main(['--command', 'status'])
     zmq_client = ZMQClient()
     request = main()
-    reply = zmq_client.send_request(request)
-    print(reply)
+    # reply = zmq_client.send_request(request)
+    # print(reply)
