@@ -57,7 +57,11 @@ class Server:
         dic = get_dic_for_PSU(request["name"])
         for s in request["payload"]:
             #Iterer over requesten og se om den er like noen av verdiene i en json fil vi har som vi kan bruke til å oversette requestene.
-            pyvisa_request.append(dic[s.split(" ")])
+            command = s.split(' ')
+            visa_cmd = dic[command[0]]
+            value = command[-1]
+            logger.debug(f'visa_cmd: {visa_cmd}')
+            logger.debug(f'value: {value}')
         print(pyvisa_request)
         
     def handle_system(self, identity, request):
