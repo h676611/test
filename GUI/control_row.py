@@ -10,11 +10,13 @@ class ControlRow(QtWidgets.QWidget):
     """A GUI control row for a single instrument, allowing connection management and SCPI command sending."""
     send_request = QtCore.pyqtSignal(dict)
 
-    def __init__(self, instrument, parent=None):
+    def __init__(self, instrument, name, parent=None):
         super().__init__(parent)
         self.instrument = instrument
 
         self.connected = False
+
+        self.name = name
         
         # Main container
         main_layout = QtWidgets.QVBoxLayout(self)
@@ -24,34 +26,66 @@ class ControlRow(QtWidgets.QWidget):
         
         num_rows = 4 if instrument == "ASRL1::INSTR" else 1
 
+
+        top_layout = QtWidgets.QHBoxLayout()
+
+        main_layout.addLayout(top_layout)
+
+        self.name_label = QtWidgets.QLabel(self.name)
+        top_layout.addWidget(self.name_label)
+
         # connect button
         self.toggle_button = QtWidgets.QPushButton("Start")
         self.toggle_button.clicked.connect(self.on_toggle)
-        main_layout.addWidget(self.toggle_button)
+        top_layout.addWidget(self.toggle_button)
 
-        self.state_label = QtWidgets.QLabel("State")
-        main_layout.addWidget(self.state_label)
 
+        # Header labels
+        header_layout = QtWidgets.QHBoxLayout()
+
+        main_layout.addLayout(header_layout)
+
+        self.channel_label = QtWidgets.QLabel("Channel")
+        header_layout.addWidget(self.channel_label)
+
+        self.voltage_label = QtWidgets.QLabel("Voltage [V]")
+        header_layout.addWidget(self.voltage_label)
+
+        self.current_label = QtWidgets.QLabel("Current [A]")
+        header_layout.addWidget(self.current_label)
+
+        self.output_label = QtWidgets.QLabel("Output")
+        header_layout.addWidget(self.output_label)
+
+        self.send_label = QtWidgets.QLabel("Send")
+        header_layout.addWidget(self.send_label)
 
         for i in range(num_rows):
             row_layout = QtWidgets.QHBoxLayout()
+
+            row_layout_top = QtWidgets.QVBoxLayout()
             
             # Create a dictionary to hold this row's widgets
             row_widgets = {}
 
             # Label
-            label_text = f"{instrument} - Ch {i+1}" if num_rows > 1 else instrument
+            label_text = f"{i+1}" if num_rows > 1 else instrument
             row_widgets['label'] = QtWidgets.QLabel(label_text)
             row_layout.addWidget(row_widgets['label'])
+
+
+
 
             
             # Voltage Input
             row_widgets['voltage_input'] = QtWidgets.QDoubleSpinBox()
+            row_widgets['voltage_input'].setSuffix(' V')
             row_widgets['voltage_input'].setRange(-100., 100.)
             row_layout.addWidget(row_widgets['voltage_input'])
 
             # Current Input
             row_widgets['current_input'] = QtWidgets.QDoubleSpinBox()
+            row_widgets['current_input'].setSuffix(' A')
             row_widgets['current_input'].setRange(-10., 10.)
             row_layout.addWidget(row_widgets['current_input'])
 

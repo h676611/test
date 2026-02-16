@@ -11,6 +11,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setGeometry(100, 100, 600, 400)
 
         self.psus = ["ASRL1::INSTR", "ASRL2::INSTR", "ASRL3::INSTR"]
+        self.connection_names = ["LV Connection", "HV Connection Setup 1", "HV Connection Setup 2", "DMM Connection"]
         self.control_rows = []
 
         # ZMQ Client
@@ -39,7 +40,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.label = QtWidgets.QLabel("PSU Control Panel")
         layout.addWidget(self.label)
 
-        for psu in self.psus:
-            row = ControlRow(psu)
+        for i, psu in enumerate(self.psus):
+            name = self.connection_names[i] if i < len(self.connection_names) else None
+            row = ControlRow(instrument=psu, name=name)
             layout.addWidget(row)
             self.control_rows.append(row)
