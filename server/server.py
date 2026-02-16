@@ -51,7 +51,8 @@ class Server:
         #     raise ValueError("Unknown request type")
         #Nå kommer requestene på denne formaten: set-channel 1, set-output 1
         #Vi må oversette den til en ny request som vi kan sende til PyVisa.
-        request = {"name": "HMP4040", "payload": ["set_channel 1", "set_output 1"]}
+        #request = {"name": "HMP4040", "payload": ["set_channel 1", "set_output 1"]}
+        logger.debug(request)
         pyvisa_request = []
         #Må hente riktig dic for type psu
         dic = get_dic_for_PSU(request["name"])

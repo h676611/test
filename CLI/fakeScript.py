@@ -9,6 +9,7 @@ def main(inargs=None):
     parser = Parser()
     args = parser.parse_args(inargs)
     request = generate_request(type="system_request", address="ASRL1::INSTR")
+    request["name"] = "HMP4040" # for testing
     request['request_id'] = 1
     payload = []
     for arg in vars(args):
