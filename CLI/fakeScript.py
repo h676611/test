@@ -47,4 +47,8 @@ if __name__ == "__main__":
     zmq_client = ZMQClient()
     request = main()
     reply = zmq_client.send_request(request)
-    print(reply)
+    while True:
+        # This line "blocks" (waits) until a message is received
+        reply = zmq_client.socket.recv_string() 
+        
+        print(f"Received: {reply}")
