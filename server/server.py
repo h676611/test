@@ -5,7 +5,7 @@ from .psu_queue import PSUQueue
 from .PSU import PSU
 from .requestKomponents import generate_reply, generate_status_update
 from logger import setup_logger
-from .Translate import HMP4040_dic, get_dic_for_PSU
+
 
 logger = setup_logger(name="server")
 
@@ -20,8 +20,6 @@ class Server:
         self.rm = pyvisa.ResourceManager('psu_sims.yaml@sim')
         self.clients = set()
         self.psus = {}
-        self.pub = self.context.socket(zmq.PUB)
-        self.pub.bind("tcp://*:5556")
 
     def start(self):
         logger.info("Server started")
@@ -37,60 +35,45 @@ class Server:
                 self.send_error(identity=identity, message=str(e), address=request.get("address"))
 
     def handle_request(self, identity, request):
-        # msg_type = request.get("type")
-        # self.clients.add(identity)
+        payload = request.get("payload", {})
+        address = request.get("name")
 
-        # logger.info(f"Received request: {request}")
+        logger.info(f"received: {request}")
 
-        # if msg_type == "system_request":
-        #     self.handle_system(identity, request)
-        # elif msg_type == "scpi_request":
-        #     self.handle_scpi(identity, request)
-        # else:
-        #     logger.error(f"Uknown request type {msg_type}")
-        #     raise ValueError("Unknown request type")
-        #Nå kommer requestene på denne formaten: set-channel 1, set-output 1
-        #Vi må oversette den til en ny request som vi kan sende til PyVisa.
-        request = {"name": "HMP4040", "payload": ["set_channel 1", "set_output 1"]}
-        pyvisa_request = []
-        #Må hente riktig dic for type psu
-        dic = get_dic_for_PSU(request["name"])
-        for s in request["payload"]:
-            #Iterer over requesten og se om den er like noen av verdiene i en json fil vi har som vi kan bruke til å oversette requestene.
-            command = s.split(' ')
-            visa_cmd = dic[command[0]]
-            value = command[-1]
-            logger.debug(f'visa_cmd: {visa_cmd}')
-            logger.debug(f'value: {value}')
-        print(pyvisa_request)
+        system_commands = {"connect", "disconnect", "status"}
+
+        for command, value in payload.items():
+            if command in system_commands and value:
+                self.handle_system_command(identity, address, command)
+                return
+            
+
+        self.handle_scpi_command(identity, address, payload)
+
         
-    def handle_system(self, identity, request):
-        address = request.get("address")
-        actions = request["payload"]
-
+    def handle_system_command(self, identity, address, command):
         dispatch = {
             "connect": self.connect_psu,
             "disconnect": self.disconnect_psu,
             "status": self.send_status,
         }
-        handler = []
-        for action in actions:
-            handler.append(dispatch.get(action))
-        
-        if len(handler) > 0:
-            for action in handler:
-                action(identity,address)
-        else:
-            logger.error(f"Uknown system action {action}")
-            self.send_error(identity=identity,message= f"Unknown system action: {action}", address=address)
 
-    def handle_scpi(self, identity, request):
-        address = request.get("address")
+        handler = dispatch.get(command)
 
+        if not handler:
+            self.send_error(identity, f"Unknown system command: {command}", address)
+            return
+
+        handler(identity, address)
+
+
+    def handle_scpi_command(self, identity, address, payload):
         if address not in self.psu_queues:
-            logger.error(f"Uknown instrument address {address}")
-            raise ValueError(f"Unknown instrument address: {address}")
-        self.psu_queues[address].add_command(identity, request)
+            self.send_error(identity, "PSU not connected", address)
+            return
+
+        self.psu_queues[address].add_command(identity, payload)
+
 
     def connect_psu(self, identity, address):
         if address in self.psu_queues:
@@ -102,6 +85,8 @@ class Server:
         psu.connected = True
         self.psus[address] = psu
         self.psu_queues[address] = PSUQueue(self.psus[address], self)
+
+        logger.info(f'connected psu: {psu.name}')
 
         response = generate_status_update(psu.get_state(), address)
         self.broadcast(response)

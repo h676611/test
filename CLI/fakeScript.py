@@ -8,20 +8,18 @@ import zmq
 def main(inargs=None):
     parser = Parser()
     args = parser.parse_args(inargs)
-    request = generate_request(type="system_request", address="ASRL1::INSTR")
+    # request = generate_request(type="system_request", address="ASRL1::INSTR")
+    request = {
+        'name': 'ASRL1::INSTR'
+    }
+    print(vars(args))
     request['request_id'] = 1
-    payload = []
-    for arg in vars(args):
-        if arg != " ":
-            temp =  getattr(args, arg)
-            text = "" 
-            for char in temp:
-                text += char + ' '
-            text = text.removesuffix(' ')
-            payload.append(arg + ' ' + text)
-
+    payload = {
+        k: v for k, v in vars(args).items()
+        if v is not None and v is not False
+    }
     request["payload"] = payload
-    print(f'request: {request}')
+    print(request)
     return request
 
 

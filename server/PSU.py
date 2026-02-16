@@ -23,6 +23,8 @@ class PSU:
         self.states = {}
         self.states[1] = self.state
 
+        self.name = "HMP4040"
+
     def query(self, command: str) -> str:
         response = self.resource.query(command)
         logger.info(f"Querying PSU with command: {command}")

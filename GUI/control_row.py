@@ -167,7 +167,5 @@ class ControlRow(QtWidgets.QWidget):
             "payload": payload
         }
 
-        logger.debug(f'sending request: {request}')
-
         self.send_request.emit(request)
         

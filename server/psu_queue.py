@@ -3,6 +3,7 @@ import queue
 import json
 from .requestKomponents import generate_status_update, generate_reply
 from logger import setup_logger
+from .Translate import get_dic_for_PSU
 
 logger = setup_logger("PSUqueue")
 
@@ -15,29 +16,64 @@ class PSUQueue:
         self.queue = queue.Queue()
         self.thread = threading.Thread(target=self.worker, daemon=True)
         self.address = psu.address
-        self.SET_COMMANDS = ["INST OUT", "VOLT", "CURR", "CURR VLIM", "VOLT ILIM", "OUTP"]
+
+        self.name = psu.name
+        self.dic = get_dic_for_PSU(self.name)
+
         self.thread.start()
         
-    def add_command(self, identity, request):
-        self.queue.put((identity, request))
+    def add_command(self, identity, payload):
+        self.queue.put((identity, payload))
 
     def worker(self):
         while True:
             identity, request = self.queue.get()
-            commands = request.get("payload", {})
-            for command in commands:
-                    
-                response = self.psu.query(command)
-                logger.info(f"Querying command: {command}")
-                logger.info(f"Response: {response}")
-                if any(command.startswith(cmd) for cmd in self.SET_COMMANDS):
-                    self.broadcast_update()
-            
-            reply = generate_reply(type="scpi_reply", address=self.address, response=response)
-            reply["request_id"] = request.get("request_id")
+            request_id = request.get("request_id")
+
+            last_response = None
+            for command, args in request.items():
+                
+                scpi_cmd = self.cli_to_scpi(command, args)
+
+                logger.info(f"Querying command: {scpi_cmd}")
+
+                last_response = self.psu.query(scpi_cmd)
+
+                logger.info(f"Response: {last_response}")
+
+                if command.startswith("set"):
+                    # self.broadcast_update()
+                    pass
+
+            reply = generate_reply(
+                type="scpi_reply",
+                address=self.address,
+                response=last_response
+            )
+
+            reply["request_id"] = request_id
             self.server.send_response(identity, reply)
+
 
     def broadcast_update(self):
         state = self.psu.get_state()
         state_message = generate_status_update(state=state, address=self.address)
         self.server.broadcast(state_message)
+
+    def cli_to_scpi(self, command, args):
+        base_scpi = self.dic.get(command)
+
+        if not base_scpi:
+            raise ValueError(f"Unknown CLI command: {command}")
+
+        if isinstance(args, list):
+            return base_scpi.format(channel=args[0], voltage=args[1])
+
+        elif isinstance(args, str):
+            return base_scpi + " " + args
+
+        elif isinstance(args, bool):
+            return base_scpi
+
+        else:
+            raise ValueError(f"Unsupported argument type for {command}")
