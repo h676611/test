@@ -61,6 +61,7 @@ class PSUQueue:
         self.server.broadcast(state_message)
 
     def cli_to_scpi(self, command, args):
+        
         base_scpi = self.dic.get(command)
 
         if not base_scpi:
@@ -69,8 +70,8 @@ class PSUQueue:
         if isinstance(args, list):
             return base_scpi.format(channel=args[0], voltage=args[1])
 
-        elif isinstance(args, str):
-            return base_scpi + " " + args
+        elif isinstance(args, str) or isinstance(args, int) or isinstance(args, float):
+            return base_scpi + " " + str(args)
 
         elif isinstance(args, bool):
             return base_scpi
