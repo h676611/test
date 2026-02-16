@@ -1,4 +1,3 @@
-import os
 import pyvisa
 import zmq
 from .psu_queue import PSUQueue
@@ -100,6 +99,7 @@ class Server:
         psu = self.psus[address]
         psu.connected = False
         del self.psu_queues[address]
+        logger.info(f'Diconnected PSU {psu.name}')
         response = generate_status_update(state=psu.get_state(), address=address)
         self.broadcast(response)
         self.send_response(identity, response)
@@ -116,7 +116,7 @@ class Server:
 
     def broadcast(self, message):
         
-        logger.info(f"Broadcasting status update {message}")
+        # logger.info(f"Broadcasting status update {message}")
 
         for client in self.clients:
             self.send_response(client, message)
