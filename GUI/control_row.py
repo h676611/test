@@ -63,7 +63,6 @@ class ControlRow(QtWidgets.QWidget):
             send_btn = QtWidgets.QPushButton(f"Send")
             
             # 2. Use lambda with a default variable 'row=i' to capture the current index
-            # send_btn.clicked.connect(lambda checked, row=i: self.on_row_submitted(row, row_widgets["on_off_channel_toggle"].isChecked()))
             send_btn.clicked.connect(
                 lambda checked, row=i, toggle=row_widgets["on_off_channel_toggle"]:
                     self.on_row_submitted(row, toggle.isChecked())
@@ -83,10 +82,13 @@ class ControlRow(QtWidgets.QWidget):
 
     def start(self):
 
-        # TODO generate request
+        # TODO generate request with function
+        payload = {
+            'connect': True
+        }
         request = {
             'name': self.instrument,
-            'payload': ['connect']
+            'payload': payload
         }
         self.send_request.emit(request)
         self.toggle_button.setText("Stop")
@@ -95,10 +97,13 @@ class ControlRow(QtWidgets.QWidget):
 
     def stop(self):
 
-        # TODO generate request
+        # TODO generate request with function
+        payload = {
+            'disconnect': True
+        }
         request = {
             'name': self.instrument,
-            'payload': ['disconnect']
+            'payload': payload
         }
         self.send_request.emit(request)
         self.toggle_button.setText("Start")
@@ -159,8 +164,13 @@ class ControlRow(QtWidgets.QWidget):
         
 
 
-        # TODO generate request
-        payload = [f'set_channel {channel}', f'set_voltage {v_val}', f'set_current {i_val}', f'set_output {1 if output_checked else 0}']
+        # TODO generate request with function
+        payload = {
+            'set_channel': channel,
+            'set_voltage': v_val,
+            'set_current': i_val,
+            'set_output': 1 if output_checked else 0
+        }
 
         request = {
             "name": self.instrument,

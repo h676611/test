@@ -35,3 +35,20 @@ class Parser(argparse.ArgumentParser):
             required=False,
             default=argparse.SUPPRESS,
         )
+
+        self.add_argument(
+            '--set-current',
+            '-sc',
+            dest="set_current",
+            type=float,
+            metavar="A",
+            help="Set PSU current"
+        )
+        self.add_argument(
+            '--set-voltage',
+            '-sv',
+            dest="set_voltage",
+            type=float,
+            metavar="V",
+            help="Set PSU voltage",
+        )
