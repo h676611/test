@@ -16,10 +16,22 @@ class Parser(argparse.ArgumentParser):
             '-so',
             type=str
         )
-
-
+        
         self.add_argument(
-            '--connect',
-            action='store_true',
-            help='Connect to PSU'
+            "--connect",
+            dest="connect",  # Optional: explicitly names the attribute
+            action="store_const",
+            const="connect",
+            help="Connects PSU from server",
+            required=False,
+            default=argparse.SUPPRESS,
+        )
+        self.add_argument(
+            "--disconnect",
+            dest="disconnect",  # Optional: explicitly names the attribute
+            action="store_const",
+            const="disconnect",
+            help="Disconnects PSU from server",
+            required=False,
+            default=argparse.SUPPRESS,
         )
