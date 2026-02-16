@@ -12,15 +12,18 @@ def main(inargs=None):
     request["name"] = "HMP4040" # for testing
     request['request_id'] = 1
     payload = []
+    system_calls = ["connect", "disconnect"]
     for arg in vars(args):
-        if arg != " ":
+        print(arg)
+        if arg != " " and arg not in system_calls:
             temp =  getattr(args, arg)
             text = "" 
             for char in temp:
                 text += char + ' '
             text = text.removesuffix(' ')
             payload.append(arg + ' ' + text)
-
+        else:
+            payload.append(arg)
     request["payload"] = payload
     print(f'request: {request}')
     return request
@@ -44,4 +47,4 @@ if __name__ == "__main__":
     zmq_client = ZMQClient()
     request = main()
     reply = zmq_client.send_request(request)
-    # print(reply)
+    print(reply)

@@ -53,21 +53,27 @@ class Server:
         #Vi må oversette den til en ny request som vi kan sende til PyVisa.
         #request = {"name": "HMP4040", "payload": ["set_channel 1", "set_output 1"]}
         logger.debug(request)
-        pyvisa_request = []
+        pyvisa_request = {}
         #Må hente riktig dic for type psu
         dic = get_dic_for_PSU(request["name"])
         for s in request["payload"]:
-            #Iterer over requesten og se om den er like noen av verdiene i en json fil vi har som vi kan bruke til å oversette requestene.
-            command = s.split(' ')
-            visa_cmd = dic[command[0]]
-            value = command[-1]
-            logger.debug(f'visa_cmd: {visa_cmd}')
-            logger.debug(f'value: {value}')
+            logger.debug(s)
+            if s != "connect":
+                #Iterer over requesten og se om den er like noen av verdiene i en json fil vi har som vi kan bruke til å oversette requestene.
+                command = s.split(' ')
+                visa_cmd = dic[command[0]]
+                value = command[-1]
+                logger.debug(f'visa_cmd: {visa_cmd}')
+                logger.debug(f'value: {value}')
+                pyvisa_request[visa_cmd] = value
+            else:
+                self.handle_system(identity, request)
         print(pyvisa_request)
         
     def handle_system(self, identity, request):
         address = request.get("address")
-        actions = request["payload"]
+        actions = []
+        actions.append(request["payload"][0])
 
         dispatch = {
             "connect": self.connect_psu,
