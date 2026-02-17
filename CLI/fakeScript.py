@@ -12,7 +12,7 @@ def main(inargs=None):
     request = {
         'name': 'ASRL1::INSTR'
     }
-    print(vars(args))
+    # print(vars(args))
     request['request_id'] = 1
     payload = {
         k: v for k, v in vars(args).items()
