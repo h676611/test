@@ -15,11 +15,6 @@ class Parser(argparse.ArgumentParser):
             action="store_true",
             help="Disconnects PSU from the server"
         )
-        self.add_argument(
-            "--get-id",
-            action="store_true",
-            help="Query instrument identification (*IDN?)"
-        )
 
         # --- Channel & Output Control ---
         self.add_argument(
@@ -28,12 +23,7 @@ class Parser(argparse.ArgumentParser):
             type=int,
             help='Sets active channel (INST OUT)'
         )
-        self.add_argument(
-            '--get-channel',
-            '-gc',
-            action="store_true",
-            help='Query currently selected channel'
-        )
+
         self.add_argument(
             '--set-output', '-so',
             choices=['0', '1', 'ON', 'OFF'],
@@ -78,31 +68,58 @@ class Parser(argparse.ArgumentParser):
         )
 
         # --- Measurements & Queries (Getters) ---
+# --- Measurements & Queries (Getters) ---
+
+        self.add_argument(
+            '--get-id',
+            action='store_const',
+            const='',
+            default=argparse.SUPPRESS,
+        )
+
+        self.add_argument(
+            '--get-channel',
+            '-gc',
+            action='store_const',
+            const='',
+            default=argparse.SUPPRESS,
+        )
+
         self.add_argument(
             '--get-voltage',
-            action="store_true",
-            help='Measure actual output voltage'
+            action='store_const',
+            const='',
+            default=argparse.SUPPRESS,
         )
+
         self.add_argument(
             '--get-current',
-            action="store_true",
-            help='Measure actual output current'
+            action='store_const',
+            const='',
+            default=argparse.SUPPRESS,
         )
+
         self.add_argument(
             '--get-display-voltage',
-            action="store_true",
-            help='Query the voltage setpoint'
+            action='store_const',
+            const='',
+            default=argparse.SUPPRESS,
         )
+
         self.add_argument(
             '--get-display-current',
-            action="store_true",
-            help='Query the current setpoint'
+            action='store_const',
+            const='',
+            default=argparse.SUPPRESS,
         )
+
         self.add_argument(
             '--get-error',
-            action="store_true",
-            help='Check for system errors'
+            action='store_const',
+            const='',
+            default=argparse.SUPPRESS,
         )
+
 
         # --- System & Modes ---
         self.add_argument(

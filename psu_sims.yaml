@@ -30,85 +30,104 @@ devices:
         r: OK
     properties:
       channel:
-    getter:
-      q: "INST:NSEL?"
-      r: "{:d}"
-    setter:
-      q: "INST OUT {:d}"
-    specs:
-      min: 1
-      max: 4
-      type: int
+        default: 1
+        getter:
+          q: "INST:NSEL?"
+          r: "{:d}"
+        setter:
+          q: "INST OUT {:d}"
+          r: "channel set OK"
+        specs:
+          min: 1
+          max: 4
+          type: int
+      voltage:
+        default: 0.0
+        getter:
+          q: "MEAS:VOLT?"
+          r: "{:.2f}"
+        setter:
+          q: "VOLT {:.2f}"
+          r: OK
+        specs:
+          min: 0.0
+          max: 32.0
+          type: float
+      current:
+        default: 0.0
+        getter:
+          q: "MEAS:CURR?"
+          r: "{:.2f}"
+        setter:
+          q: "CURR {:.2f}"
+          r: OK
+        specs:
+          min: 0.0
+          max: 5.0
+          type: float
+      current_limit:
+        default: 5.0
+        getter:
+          q: "VOLT ILIM?"
+          r: "{:.2f}"
+        setter:
+          q: "VOLT ILIM {:.2f}"
+          r: OK
+        specs:
+          min: 0.0
+          max: 5.0
+          type: float
+      voltage_limit:
+        default: 32.0
+        getter:
+          q: "CURR VLIM?"
+          r: "{:.2f}"
+        setter:
+          q: "CURR VLIM {:.2f}"
+          r: OK
+        specs:
+          min: 0.0
+          max: 32.0
+          type: float
+      output:
+        default: 0
+        getter: 
+          q: "OUTP?"
+          r: "{:d}"
+        setter:
+          q: "OUTP {:d}"
+          r: OK
+        specs:
+          min: 0
+          max: 1
+          type: int
+      output_all:
+        default: 0
+        getter:
+          q: "OUTP:GEN?"
+          r: "{:d}"
+        setter:
+          q: "OUTP:GEN {:d}"
+          r: OK
+        specs:
+          min: 0
+          max: 1
+          type: int
 
-  voltage:
-    getter:
-      q: "VOLT?" # Returns the set value
-      r: "{:f}"
-    setter:
-      q: "VOLT {:f}"
-    specs:
-      type: float
+      display_current:
+        getter:
+          q: "CURR?"
+          r: "{:.2f}"
 
-  current:
-    getter:
-      q: "CURR?" # Returns the set value
-      r: "{:f}"
-    setter:
-      q: "CURR {:f}"
-    specs:
-      type: float
+      display_voltage:
+        getter:
+          q: "VOLT?"
+          r: "{:.2f}"
 
-  meas_voltage:
-    getter:
-      q: "MEAS:VOLT?" # Actual measured output
-      r: "{:f}"
-
-  meas_current:
-    getter:
-      q: "MEAS:CURR?" # Actual measured output
-      r: "{:f}"
-
-  voltage_limit:
-    getter:
-      q: "CURR VLIM?"
-      r: "{:f}"
-    setter:
-      q: "CURR VLIM {:f}"
-
-  current_limit:
-    getter:
-      q: "VOLT ILIM?"
-      r: "{:f}"
-    setter:
-      q: "VOLT ILIM {:f}"
-
-  output_enabled:
-    getter:
-      q: "OUTP:SEL?"
-      r: "{:d}"
-    setter:
-      q: "OUTP {:d}"
-    specs:
-      type: bool
-
-  output_all:
-    setter:
-      q: "OUTP:GEN {:d}"
-    specs:
-      type: bool
-
-  source_function:
-    setter:
-      q: "SOUR FUNC {:s}"
-
-  remote_mode:
-    setter:
-      q: "SYST:{:s}"
-    specs:
-      options:
-        local: "LOC"
-        remote: "REM"
-        mixed: "MIX"
+      display_output:
+        getter:
+          q: "OUTP:SEL?"
+          r: "{:d}"
 
 resources:
   ASRL1::INSTR:
