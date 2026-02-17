@@ -11,23 +11,23 @@ devices:
       - q: "*IDN?"
         r: "Rohde&Schwarz,HMP4040,DUMMY,SIM"
       - q: "SYST:LOC"
-        r: "OK"
+        r: OK
       - q: "SYST:REM"
-        r: "OK"
+        r: OK
       - q: "SYST:MIX"
-        r: "OK"
+        r: OK
       - q: "SYST:ERR?"
         r: "ERROR 0,No error"
       - q: "OUTP?"
         r: "{output_state}"
       - q: "OUTP:SEL 1"
-        r: "OK"
+        r: OK
       - q: "OUTP:SEL 0"
-        r: "OK"
+        r: OK
       - q: "OUTP:GEN 1"
-        r: "OK"
+        r: OK
       - q: "OUTP:GEN 0"
-        r: "OK"
+        r: OK
     properties:
       channel:
     getter:
