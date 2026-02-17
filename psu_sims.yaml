@@ -11,23 +11,23 @@ devices:
       - q: "*IDN?"
         r: "Rohde&Schwarz,HMP4040,DUMMY,SIM"
       - q: "SYST:LOC"
-        r: "OK"
+        r: OK
       - q: "SYST:REM"
-        r: "OK"
+        r: OK
       - q: "SYST:MIX"
-        r: "OK"
+        r: OK
       - q: "SYST:ERR?"
         r: "ERROR 0,No error"
       - q: "OUTP?"
         r: "{output_state}"
       - q: "OUTP:SEL 1"
-        r: "OK"
+        r: OK
       - q: "OUTP:SEL 0"
-        r: "OK"
+        r: OK
       - q: "OUTP:GEN 1"
-        r: "OK"
+        r: OK
       - q: "OUTP:GEN 0"
-        r: "OK"
+        r: OK
     properties:
       channel:
         default: 1
@@ -36,7 +36,7 @@ devices:
           r: "{:d}"
         setter:
           q: "INST OUT {:d}"
-          r: "OK"
+          r: "channel set OK"
         specs:
           min: 1
           max: 4
@@ -48,7 +48,7 @@ devices:
           r: "{:.2f}"
         setter:
           q: "VOLT {:.2f}"
-          r: "OK"
+          r: OK
         specs:
           min: 0.0
           max: 32.0
@@ -60,7 +60,7 @@ devices:
           r: "{:.2f}"
         setter:
           q: "CURR {:.2f}"
-          r: "OK"
+          r: OK
         specs:
           min: 0.0
           max: 5.0
@@ -72,7 +72,7 @@ devices:
           r: "{:.2f}"
         setter:
           q: "VOLT ILIM {:.2f}"
-          r: "OK"
+          r: OK
         specs:
           min: 0.0
           max: 5.0
@@ -84,7 +84,7 @@ devices:
           r: "{:.2f}"
         setter:
           q: "CURR VLIM {:.2f}"
-          r: "OK"
+          r: OK
         specs:
           min: 0.0
           max: 32.0
@@ -96,7 +96,7 @@ devices:
           r: "{:d}"
         setter:
           q: "OUTP {:d}"
-          r: "OK"
+          r: OK
         specs:
           min: 0
           max: 1

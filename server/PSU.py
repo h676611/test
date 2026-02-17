@@ -1,5 +1,6 @@
 import re
 from logger import setup_logger
+import pyvisa
 
 logger = setup_logger("PSU")
 class PSU:
@@ -26,9 +27,20 @@ class PSU:
         self.name = "HMP4040"
 
     def query(self, command: str) -> str:
+        logger.debug(f'command: {command} with length: {len(command)}')
+        command = command.strip(' ')
+        self.resource.write(command)
+        logger.debug(f'writing {command}')
+
+        write_response = self.resource.read()
+        logger.debug(f'write response: {write_response}')
+
         response = self.resource.query(command)
-        logger.info(f"Querying PSU with command: {command}")
-        logger.info(f"Response: {response}")
+        logger.debug(f'query response: {response}')
+
+
+        # logger.info(f"Querying PSU with command: {command}")
+        # logger.info(f"Response: {response}")
 
         if any(command.startswith(cmd) for cmd in self.SET_COMMANDS):
             try:

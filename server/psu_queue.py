@@ -71,6 +71,8 @@ class PSUQueue:
             return base_scpi.format(channel=args[0], voltage=args[1])
 
         elif isinstance(args, str) or isinstance(args, int) or isinstance(args, float):
+            if str(args) == '':
+                return base_scpi
             return base_scpi + " " + str(args)
 
         elif isinstance(args, bool):
