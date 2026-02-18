@@ -8,7 +8,7 @@ def main(inargs=None):
     parser = Parser()
     args = parser.parse_args(inargs)
     request = {
-        'name': 'ASRL1::INSTR'
+        'name': 'ASRL5::INSTR'
     }
     request['request_id'] = 1
     payload = {
@@ -16,7 +16,7 @@ def main(inargs=None):
         if v is not None and v is not False
     }
     
-    payload = process_payload(payload)
+    # payload = process_payload(payload)
     request["payload"] = payload
     print(request)
     return request
