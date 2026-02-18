@@ -29,7 +29,6 @@ class PSUQueue:
         while True:
             identity, request = self.queue.get()
             request_id = request.get("request_id")
-
             last_response = None
             for command, args in request.items():
                 
@@ -41,9 +40,9 @@ class PSUQueue:
 
                 logger.info(f"Response: {last_response}")
 
-                if command.startswith("set"):
-                    # self.broadcast_update()
-                    pass
+
+            if any(key.startswith("set") for key in request):
+                self.broadcast_update()
 
             reply = generate_reply(
                 type="scpi_reply",
