@@ -38,7 +38,7 @@ class Parser(argparse.ArgumentParser):
         # --- Voltage & Current Setpoints ---
         self.add_argument(
             '--set-voltage', '-sv',
-            type=float,
+            type=str,
             help='Set voltage for selected channel'
         )
         self.add_argument(
