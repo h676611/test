@@ -4,23 +4,30 @@ from .psu_queue import PSUQueue
 from .PSU import PSU
 from logger import setup_logger
 
-
 logger = setup_logger(name="server")
 
 class Server:
     """A server to handle client requests for PSU control via SCPI commands over ZeroMQ."""
 
-    def __init__(self, address="tcp://*:5555"):
+    def __init__(self, config, address="tcp://*:5555"):
         self.context = zmq.Context()
         self.socket = self.context.socket(zmq.ROUTER)
         self.socket.bind(address)
         self.psu_queues = {}
         self.rm = pyvisa.ResourceManager('psu_sims.yaml@sim')
         self.clients = set()
+
+        self.config = config
+
         self.psus = {}
 
     def start(self):
         logger.info("Server started")
+
+        logger.info("Connecting to PSUs")
+
+        for name, psu in self.config.items():
+            self.connect_psu(psu["address"], name=name)
 
         while True:
             identity = self.socket.recv()
@@ -61,7 +68,7 @@ class Server:
             self.send_error(identity, f"Unknown system command: {command}", address)
             return
 
-        handler(identity, address)
+        handler(address=address, identity=identity)
 
 
     def handle_scpi_command(self, identity, address, payload):
@@ -72,29 +79,35 @@ class Server:
         self.psu_queues[address].add_command(identity, payload)
 
 
-    def connect_psu(self, identity, address):
+
+    def connect_psu(self, address, identity=None, name=None):
         if address in self.psu_queues:
             logger.error(f"PSU {address} already connected")
             self.send_error(identity=identity, message="PSU already connected", address=address)
             return
-
-        psu = PSU(self.rm.open_resource(address))
+        
+        logger.debug(f'trying to connect {address}')
+        if name:
+            psu = PSU(self.rm.open_resource(address), name=name)
+        else:
+            psu = PSU(self.rm.open_resource(address))
         psu.connected = True
         self.psus[address] = psu
         self.psu_queues[address] = PSUQueue(self.psus[address], self)
 
         logger.info(f'connected psu: {psu.name}')
 
-        self.broadcast_status(address)
+        if identity:
+            self.broadcast_status(address)
 
-        reply = {
-            "type": "system_reply",
-            "address": address,
-            "payload": {
-                "connect": "OK"
+            reply = {
+                "type": "system_reply",
+                "address": address,
+                "payload": {
+                    "connect": "OK"
+                }
             }
-        }
-        self.send_response(identity, reply)
+            self.send_response(identity, reply)
     
     def disconnect_psu(self, identity, address):
         if address not in self.psu_queues:

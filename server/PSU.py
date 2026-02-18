@@ -5,7 +5,7 @@ import pyvisa
 logger = setup_logger("PSU")
 class PSU:
     """Represents a Power Supply Unit with SCPI command handling."""
-    def __init__(self, resource, num_channels=4, name="HMP4040"):
+    def __init__(self, resource, num_channels=4, name="hmp4040"):
         self.name = name
 
         self.resource = resource

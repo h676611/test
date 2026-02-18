@@ -1,8 +1,13 @@
 import threading
 from .server import Server
+import json
 
 if __name__ == "__main__":
-    server = Server()
+
+    with open(r'server\psu_config.json', 'r') as file:
+        config_file = json.load(file)
+
+    server = Server(config=config_file)
 
     # Optionally start server in its own thread
     server_thread = threading.Thread(target=server.start, daemon=True)
