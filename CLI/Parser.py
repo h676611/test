@@ -43,17 +43,17 @@ class Parser(argparse.ArgumentParser):
         )
         self.add_argument(
             '--set-current', '-si',
-            type=float,
+            type=str,
             help='Set current for selected channel'
         )
         self.add_argument(
             '--set-voltage-limit',
-            type=float,
+            type=str,
             help='Set voltage limit (V-Limit)'
         )
         self.add_argument(
             '--set-current-limit',
-            type=float,
+            type=str,
             help='Set current limit (I-Limit)'
         )
 
