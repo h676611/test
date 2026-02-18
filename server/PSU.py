@@ -5,43 +5,42 @@ import pyvisa
 logger = setup_logger("PSU")
 class PSU:
     """Represents a Power Supply Unit with SCPI command handling."""
-    def __init__(self, resource):
-        self.resource = resource
-        self.voltage = 0.0
-        self.current = 0.0
-        self.connected = False
-        self.address = resource.resource_name
-        self.current_limit = 0.0
-        self.voltage_limit = 0.0
-        self.selected_channel = 1
-        self.SET_COMMANDS = ["INST OUT", "VOLT", "CURR", "CURR VLIM", "VOLT ILIM", "OUTP"]
-        self.state = {
-            "VOLT": self.voltage,
-            "CURR": self.current,
-            "CURR VLIM": self.voltage_limit,
-            "VOLT ILIM": self.current_limit
-        }
-        self.states = {}
-        self.states[1] = self.state
-
+    def __init__(self, resource, num_channels=4):
         self.name = "HMP4040"
 
-    def query(self, command: str) -> str:
-        logger.debug(f'command: {command} with length: {len(command)}')
+        self.resource = resource
+
+        self.connected = False
+        
+        self.address = resource.resource_name
+
+        self.SET_COMMANDS = ["INST OUT", "VOLT", "CURR", "CURR VLIM", "VOLT ILIM", "OUTP"]
+
+        self.selected_channel = 1
+
+        self.states = {}
+        for i in range(num_channels):
+            self.states[i + 1] = {
+                "VOLT": 0.0,
+                "CURR": 0.0,
+                "VOLT ILIM": 0.0,
+                "CURR VLIM": 0.0,
+                "OUTP": 0
+            }
+
+    def query(self, command):
         command = command.strip(' ')
+
         self.resource.write(command)
         logger.debug(f'writing {command}')
 
-        write_response = self.resource.read()
-        logger.debug(f'write response: {write_response}')
+        read_response = self.resource.read()
+        logger.debug(f'write response: {read_response}')
 
         response = self.resource.query(command)
         logger.debug(f'query response: {response}')
 
-
-        # logger.info(f"Querying PSU with command: {command}")
-        # logger.info(f"Response: {response}")
-
+        # if set command, update state
         if any(command.startswith(cmd) for cmd in self.SET_COMMANDS):
             try:
                 match = re.match(r"(.+)\s+(-?\d+(?:\.\d*)?|-?\.\d+)$", command)
@@ -49,11 +48,8 @@ class PSU:
 
                 value = float(match.group(2))
 
-                if name == "INST OUT": # check channel change and create new state for channel
-                    temp_state = {
-                    }
-                    self.selected_channel = value
-                    self.states[int(value)] = temp_state
+                if name == "INST OUT": # check channel change
+                    self.selected_channel = int(value)
                     return response
 
                 self.states[self.selected_channel][name] = value

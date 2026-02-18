@@ -45,7 +45,6 @@ class Server:
             if command in system_commands and value:
                 self.handle_system_command(identity, address, command)
                 return
-            
 
         self.handle_scpi_command(identity, address, payload)
 
@@ -79,7 +78,7 @@ class Server:
             logger.error(f"PSU {address} already connected")
             self.send_error(identity=identity, message="PSU already connected", address=address)
             return
-        
+
         psu = PSU(self.rm.open_resource(address))
         psu.connected = True
         self.psus[address] = psu
@@ -116,7 +115,7 @@ class Server:
 
     def broadcast(self, message):
         
-        # logger.info(f"Broadcasting status update {message}")
+        logger.info(f"Broadcasting status update")
 
         for client in self.clients:
             self.send_response(client, message)
