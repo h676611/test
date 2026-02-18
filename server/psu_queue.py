@@ -76,7 +76,7 @@ class PSUQueue:
         elif isinstance(args, str) or isinstance(args, int) or isinstance(args, float):
             if str(args) == '':
                 return base_scpi
-            return base_scpi + " " + str(args)
+            return base_scpi + str(args)
 
         elif isinstance(args, bool):
             return base_scpi
