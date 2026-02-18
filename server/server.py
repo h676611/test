@@ -2,7 +2,6 @@ import pyvisa
 import zmq
 from .psu_queue import PSUQueue
 from .PSU import PSU
-from .requestKomponents import generate_reply, generate_status_update
 from logger import setup_logger
 
 
@@ -88,7 +87,14 @@ class Server:
 
         self.broadcast_status(address)
 
-        self.send_response(identity, generate_reply('system_reply', address, 'OK'))
+        reply = {
+            "type": "system_reply",
+            "address": address,
+            "payload": {
+                "connect": "OK"
+            }
+        }
+        self.send_response(identity, reply)
     
     def disconnect_psu(self, identity, address):
         if address not in self.psu_queues:
@@ -99,25 +105,47 @@ class Server:
         psu.connected = False
         del self.psu_queues[address]
         logger.info(f'Diconnected PSU {psu.name}')
-        
+
         self.broadcast_status(address)
 
-        self.send_response(identity, generate_reply('system_reply', address, 'OK'))
+        reply = {
+            "type": "system_reply",
+            "address": address,
+            "payload": {
+                "disconnect": "OK"
+            }
+        }
+
+        self.send_response(identity, reply)
 
 
     def send_status(self, identity, address):
         psu = self.psus.get(address)
-        status_message = generate_status_update(state=psu.get_state(), address=address)
+        status_message = {
+            "type": "status_update", 
+            "status": psu.get_state(), 
+            "address": address
+        }
         self.send_response(identity, status_message)
 
 
     def send_error(self, identity, message, address):
-        reply = generate_reply(type="error", address=address, response=message)
+        reply = {
+            "type": "error",
+            "address": address,
+            "payload": {
+                "message": message
+            }
+        }
         self.send_response(identity, reply)
 
     def broadcast_status(self, address):
         psu = self.psus.get(address)
-        status_message = generate_status_update(state=psu.get_state(), address=address)
+        status_message = {
+            "type": "status_update",
+            "address": address,
+            "state": psu.get_state()
+        }
         self.broadcast(status_message)
 
     def broadcast(self, message):

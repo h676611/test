@@ -1,7 +1,5 @@
 import threading
 import queue
-import json
-from .requestKomponents import generate_status_update, generate_reply
 from logger import setup_logger
 from .Translate import get_dic_for_PSU
 
@@ -48,18 +46,21 @@ class PSUQueue:
             if any(key.startswith("set") for key in payload):
                 self.broadcast_update()
 
-            reply = generate_reply(
-                type="scpi_reply",
-                address=self.address,
-                response=reply_payload
-            )
+            reply = {
+                "address": self.address,
+                "payload": reply_payload
+            }
 
             self.server.send_response(identity, reply)
 
 
     def broadcast_update(self):
         state = self.psu.get_state()
-        state_message = generate_status_update(state=state, address=self.address)
+        state_message = {
+            "type": "status_update",
+            "status": state,
+            "address": self.address
+        }
         self.server.broadcast(state_message)
 
     def cli_to_scpi(self, command, args):
