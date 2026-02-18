@@ -2,13 +2,30 @@
 
 def get_dic_for_PSU(psu_name): 
     dic = {# Legger til alle PSU og commandoer inn hær
-        "HMP4040": HMP4040_dic,
-        "K2400": K2400_dic,
-        "K2450": K2450_dic,
+        "hmp4040": HMP4040_dic,
+        "k2400": K2400_dic,
+        "k2450": K2450_dic,
+        "k6500": K6500_dic
     }
     for psu in dic:
         if psu_name == psu:
             return dic[psu]
+    
+    raise LookupError(f"can't find dictionary for name {psu_name}")
+
+
+K6500_dic = {
+        #NB: Trailing spaces in these strings are important
+        "get_id": "*IDN?",
+        "reset": "*RST",
+        # "get_error": "SYST:ERR?",
+        # "set_source": "SOUR:FUNC ",
+        # "get_current": "MEAS:CURR?",
+        "get_voltage": "MEAS:VOLT?",
+        "set_channel": "route:close",  # NOTE, special set channel treatment below
+        "get_channel": "route:multiple:close?",
+        "get_channel_voltage": "ROUT:OPEN:ALL;:ROUT:CLOS (@{channel});:READ?"
+}
 
 HMP4040_dic = {
     #NB: Trailing spaces in these strings are important

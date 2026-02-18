@@ -132,5 +132,7 @@ devices:
 resources:
   ASRL1::INSTR:
     device: HMP4040
+  ASRL5::INSTR:
+    device: HMP4040
   ASRL2::INSTR:
     device: HMP4040
