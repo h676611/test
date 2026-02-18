@@ -1,7 +1,6 @@
 import json
 import uuid
 from PyQt5 import QtWidgets, QtCore
-from server.requestKomponents import generate_request
 from logger import setup_logger
 
 logger = setup_logger("Control row")
@@ -148,7 +147,7 @@ class ControlRow(QtWidgets.QWidget):
         if reply.get("address") != self.instrument:
             return
         logger.info(f"received reply: {reply}")
-        # TODO handle replies
+        # TODO [KAN-19] handle replies
         
 
     @QtCore.pyqtSlot(dict)
@@ -177,16 +176,13 @@ class ControlRow(QtWidgets.QWidget):
             if "OUTP" in channel_state:
                 row["on_off_channel_toggle"].setChecked(bool(channel_state["OUTP"])) # sync sånn at checkboxen viser riktig
 
-    def handle_voltage_update(self, voltage):
-        # TODO
-        pass
     
     @QtCore.pyqtSlot(dict)
     def handle_error(self, message):
         if message.get("address") != self.instrument:
             return
         logger.error(f"received error: {message}")
-        # TODO handle errors
+        # TODO [KAN-20] handle errors
 
     # 3. The function that handles the logic
     def on_row_submitted(self, row_index, output_checked):
@@ -198,7 +194,7 @@ class ControlRow(QtWidgets.QWidget):
         
 
 
-        # TODO generate request with function
+        # TODO [KAN-21] generate request with function
         payload = {
             'set_channel': channel,
             'set_voltage': v_val,

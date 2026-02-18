@@ -1,18 +1,14 @@
 import sys, os
 sys.path.append(os.getcwd())
 from Parser import Parser
-from CLI_zmq_client import CLI_zmq_client
-from server.requestKomponents import generate_request
 import zmq
 
 def main(inargs=None):
     parser = Parser()
     args = parser.parse_args(inargs)
-    # request = generate_request(type="system_request", address="ASRL1::INSTR")
     request = {
         'name': 'ASRL1::INSTR'
     }
-    # print(vars(args))
     request['request_id'] = 1
     payload = {
         k: v for k, v in vars(args).items()
@@ -24,11 +20,10 @@ def main(inargs=None):
 
 
 class ZMQClient:
-     def __init__(self, address="tcp://localhost:5555", scpi_address="ASRL1::INSTR"):
+     def __init__(self, address="tcp://localhost:5555"):
         self.context = zmq.Context()
         self.socket = self.context.socket(zmq.DEALER)
         self.socket.connect(address)
-        self.scpi_address = scpi_address
 
      def send_request(self, request):
         self.socket.send_json(request)

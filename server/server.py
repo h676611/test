@@ -86,9 +86,9 @@ class Server:
 
         logger.info(f'connected psu: {psu.name}')
 
-        response = generate_status_update(psu.get_state(), address)
-        self.broadcast(response)
-        self.send_response(identity, response)
+        self.broadcast_status(address)
+
+        self.send_response(identity, generate_reply('system_reply', address, 'OK'))
     
     def disconnect_psu(self, identity, address):
         if address not in self.psu_queues:
@@ -99,24 +99,29 @@ class Server:
         psu.connected = False
         del self.psu_queues[address]
         logger.info(f'Diconnected PSU {psu.name}')
-        response = generate_status_update(state=psu.get_state(), address=address)
-        self.broadcast(response)
-        self.send_response(identity, response)
+        
+        self.broadcast_status(address)
 
-    # endre på noe her for å få vekk error på server-side om en client spør om status uten å være koblet på en psu? <- da er det gjort
+        self.send_response(identity, generate_reply('system_reply', address, 'OK'))
+
+
     def send_status(self, identity, address):
         psu = self.psus.get(address)
-        response = generate_status_update(state=psu.get_state(), address=address)
-        self.send_response(identity, response)
+        status_message = generate_status_update(state=psu.get_state(), address=address)
+        self.send_response(identity, status_message)
+
 
     def send_error(self, identity, message, address):
         reply = generate_reply(type="error", address=address, response=message)
         self.send_response(identity, reply)
 
-    def broadcast(self, message):
-        
-        logger.info(f"Broadcasting status update")
+    def broadcast_status(self, address):
+        psu = self.psus.get(address)
+        status_message = generate_status_update(state=psu.get_state(), address=address)
+        self.broadcast(status_message)
 
+    def broadcast(self, message):
+        logger.info(f"Broadcasting status update")
         for client in self.clients:
             self.send_response(client, message)
 

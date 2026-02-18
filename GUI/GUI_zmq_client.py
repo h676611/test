@@ -51,7 +51,6 @@ class ZmqClient(QtCore.QObject):
                         self._pending.remove(request_id)
                         self.reply_received.emit(request_id, msg)
                     else:
-                        # TODO logger
                         logger.error(f'received reply with wrong request id')
                 elif msg_type == "status_update":
                     self.status_update_received.emit(msg)

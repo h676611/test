@@ -27,10 +27,12 @@ class PSUQueue:
 
     def worker(self):
         while True:
-            identity, request = self.queue.get()
-            request_id = request.get("request_id")
+            identity, payload = self.queue.get()
             last_response = None
-            for command, args in request.items():
+            reply_payload = {
+
+            }
+            for command, args in payload.items():
                 
                 scpi_cmd = self.cli_to_scpi(command, args)
 
@@ -40,17 +42,18 @@ class PSUQueue:
 
                 logger.info(f"Response: {last_response}")
 
+                reply_payload[command] = last_response
 
-            if any(key.startswith("set") for key in request):
+
+            if any(key.startswith("set") for key in payload):
                 self.broadcast_update()
 
             reply = generate_reply(
                 type="scpi_reply",
                 address=self.address,
-                response=last_response
+                response=reply_payload
             )
 
-            reply["request_id"] = request_id
             self.server.send_response(identity, reply)
 
 

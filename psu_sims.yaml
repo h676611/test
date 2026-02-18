@@ -36,7 +36,7 @@ devices:
           r: "{:d}"
         setter:
           q: "INST OUT {:d}"
-          r: "channel set OK"
+          r: "OK"
         specs:
           min: 1
           max: 4
