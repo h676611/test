@@ -1,79 +1,131 @@
 import argparse
 
-class Parser(argparse.ArgumentParser):
-    def __init__(self):
-        super().__init__(description="HMP4040 PSU CLI Client Parser")
 
-        # --- Connection Management ---
-        self.add_argument(
+def create_base_parser():
+    base = argparse.ArgumentParser(add_help=False)
+    base.add_argument(
             "--connect",
             action="store_true",
             help="Connects PSU to the server"
-        )
-        self.add_argument(
-            "--disconnect",
-            action="store_true",
-            help="Disconnects PSU from the server"
+    )
+    base.add_argument(
+        "--disconnect",
+        action="store_true",
+        help="Disconnects PSU from the server"
+    )
+
+
+    base.add_argument(
+        '--set-output', '-so',
+        choices=['0', '1', 'ON', 'OFF'],
+        help='Sets output state for selected channel'
+    )
+
+
+    # --- Voltage & Current Setpoints ---
+    base.add_argument(
+        '--set-voltage', '-sv',
+        type=str,
+        help='Set voltage for selected channel'
+    )
+    base.add_argument(
+        '--set-current', '-si',
+        type=str,
+        help='Set current for selected channel'
+    )
+    base.add_argument(
+        '--set-voltage-limit',
+        type=str,
+        help='Set voltage limit (V-Limit)'
+    )
+    base.add_argument(
+        '--set-current-limit',
+        type=str,
+        help='Set current limit (I-Limit)'
+    )
+
+    # --- Combined Commands ---
+    base.add_argument(
+        '--set-iv',
+        nargs=2,
+        metavar=('CURRENT', 'VOLTAGE'),
+        type=float,
+        help='Simultaneously set Current and Voltage'
+    )
+
+    # --- Measurements & Queries (Getters) ---
+    base.add_argument(
+        '--get-id',
+        action='store_const',
+        const='',
+        default=argparse.SUPPRESS,
+    )
+
+    base.add_argument(
+        '--get-voltage',
+        action='store_const',
+        const='',
+        default=argparse.SUPPRESS,
+    )
+
+    base.add_argument(
+        '--get-current',
+        action='store_const',
+        const='',
+        default=argparse.SUPPRESS,
+    )
+
+    base.add_argument(
+        '--get-display-voltage',
+        action='store_const',
+        const='',
+        default=argparse.SUPPRESS,
+    )
+
+    base.add_argument(
+        '--get-display-current',
+        action='store_const',
+        const='',
+        default=argparse.SUPPRESS,
+    )
+
+    base.add_argument(
+        '--get-error',
+        action='store_const',
+        const='',
+        default=argparse.SUPPRESS,
+    )
+
+
+    # --- System & Modes ---
+    base.add_argument(
+        '--set-remote',
+        choices=['mixed', 'local', 'remote'],
+        help='Set system remote/local state'
+    )
+    base.add_argument(
+        '--set-source',
+        help='Set source function'
+    )
+    return base
+    
+
+class Hmp4040_Parser(argparse.ArgumentParser):
+    def __init__(self):
+        base = create_base_parser()
+
+        super().__init__(
+            description="HMP4040 PSU CLI",
+            parents=[base]
         )
 
-        # --- Channel & Output Control ---
         self.add_argument(
             '--set-channel', 
-            '-sc',
+            '-sch',
+            dest="set_channel",
+            choices=[1,2,3,4],
             type=int,
-            help='Sets active channel (INST OUT)'
-        )
-
-        self.add_argument(
-            '--set-output', '-so',
-            choices=['0', '1', 'ON', 'OFF'],
-            help='Sets output state for selected channel'
-        )
-        self.add_argument(
-            '--set-output-all',
-            choices=['0', '1', 'ON', 'OFF'],
-            help='Sets global output state (OUTP:GEN)'
-        )
-
-        # --- Voltage & Current Setpoints ---
-        self.add_argument(
-            '--set-voltage', '-sv',
-            type=str,
-            help='Set voltage for selected channel'
-        )
-        self.add_argument(
-            '--set-current', '-si',
-            type=str,
-            help='Set current for selected channel'
-        )
-        self.add_argument(
-            '--set-voltage-limit',
-            type=str,
-            help='Set voltage limit (V-Limit)'
-        )
-        self.add_argument(
-            '--set-current-limit',
-            type=str,
-            help='Set current limit (I-Limit)'
-        )
-
-        # --- Combined Commands ---
-        # Usage: --set-iv 12.5 2.0
-        self.add_argument(
-            '--set-iv',
-            nargs=2,
-            metavar=('CURRENT', 'VOLTAGE'),
-            type=float,
-            help='Simultaneously set Current and Voltage'
-        )
-
-# --- Measurements & Queries (Getters) ---
-
-        self.add_argument(
-            '--get-id',
-            action='store_const',
-            const='',
-            default=argparse.SUPPRESS,
+            help='Sets active channel'
         )
 
         self.add_argument(
@@ -85,48 +137,61 @@ class Parser(argparse.ArgumentParser):
         )
 
         self.add_argument(
-            '--get-voltage',
-            action='store_const',
-            const='',
+            '--set-output-all',
+            '-soa',
+            dest="set_output_all",
+            type=str,
+            choices=["True", "False", "true", "false", "0", "1"],
+            help="Activate output for all channels"
+        )
+
+class K2400_Parser(argparse.ArgumentParser):
+    def __init__(self):
+        base = create_base_parser()
+        super().__init__(
+            description="K2400 PSU CLI",
+            parents=[base]
+        )
+
+class K2450_Parser(argparse.ArgumentParser):
+    def __init__(self):
+        base = create_base_parser()
+        super().__init__(
+            description="K2450 PSU CLI",
+            parents=[base]
+        )
+    
+class K6500_Parser(argparse.ArgumentParser):
+    def __init__(self):
+        super().__init__(
+            description="K6500 DMM CLI"
+        )
+
+        self.add_argument(
+            "--get-channel-voltage",
+            "-gcv",
+            dest="get_channel_voltage",
+            type=int,
+            help="measure voltage at specified channel"
+        )
+
+        self.add_argument(
+            '--set-channel',
+            '-sch',
+            dest="set_channel",
+            type=int,
+            choices=[1,2,3,4,5,6,7,8,9,10],
+            help="Select channel"
+        )
+        self.add_argument(
+            '--get-channel',
+            '-gch',
+            dest="get_channel",
+            action='store_true',
             default=argparse.SUPPRESS,
-        )
-
-        self.add_argument(
-            '--get-current',
-            action='store_const',
-            const='',
-            default=argparse.SUPPRESS,
-        )
-
-        self.add_argument(
-            '--get-display-voltage',
-            action='store_const',
-            const='',
-            default=argparse.SUPPRESS,
-        )
-
-        self.add_argument(
-            '--get-display-current',
-            action='store_const',
-            const='',
-            default=argparse.SUPPRESS,
-        )
-
-        self.add_argument(
-            '--get-error',
-            action='store_const',
-            const='',
-            default=argparse.SUPPRESS,
+            help="Get all closed channels on the multimeter"
         )
 
 
-        # --- System & Modes ---
-        self.add_argument(
-            '--set-remote',
-            choices=['mixed', 'local', 'remote'],
-            help='Set system remote/local state'
-        )
-        self.add_argument(
-            '--set-source',
-            help='Set source function'
-        )
+
+       
