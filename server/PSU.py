@@ -29,40 +29,42 @@ class PSU:
             }
 
     def query(self, command):
-        command = command.strip(' ')
-
-
-        
-
-        # if set command, update state
-        if any(command.startswith(cmd) for cmd in self.SET_COMMANDS):
-
-            self.resource.write(command)
-            logger.debug(f'writing {command}')
-
-            read_response = self.resource.read()
-            logger.debug(f'write response: {read_response}')
-
-            try:
-                match = re.match(r"(.+)\s+(-?\d+(?:\.\d*)?|-?\.\d+)$", command)
-                name = match.group(1)
-
-                value = float(match.group(2))
-
-                if name == "INST OUT": # check channel change
-                    self.selected_channel = int(value)
-                    return read_response
-
-                self.states[self.selected_channel][name] = value
-                
-
-            except Exception as e:
-                logger.error(f"exeption {e} for {command}")
-
+        # command = command.strip(' ')
+        logger.debug(f'querying {command} length {len(command)}')
         response = self.resource.query(command)
         logger.debug(f'query response: {response}')
-
         return response
 
     def get_state(self):
         return self.states
+
+    def write(self, command):
+        command = command.strip(' ')
+        self.resource.write(command)
+        logger.debug(f'writing {command}')
+
+        read_response = self.resource.read()
+        logger.debug(f'write response: {read_response}')
+        
+        try:
+            match = re.match(r"^(.*?)\s*(\d+(?:\.\d+)?)$", command)
+            name = match.group(1)
+
+            value = match.group(2)
+            
+            logger.debug(f'matched name: {name}, value: {value}')
+
+            if "INST OUT" in command: # check channel change
+                self.selected_channel = int(value)
+                logger.debug(f'selected channel changed to {self.selected_channel}')
+                return read_response
+
+            self.states[self.selected_channel][name] = value
+            logger.debug(f'state updated: {self.states[self.selected_channel]}')
+                
+
+        except Exception as e:
+            logger.error(f"exeption {e} for {command}")
+            
+        logger.debug(f'fpsu state: {self.get_state()}')
+        return read_response

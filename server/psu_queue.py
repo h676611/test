@@ -30,17 +30,26 @@ class PSUQueue:
             reply_payload = {
 
             }
-            for command, args in payload.items():
-                
-                scpi_cmd = self.cli_to_scpi(command, args)
+            if any(key.startswith("get") for key in payload): #If it is a get command we query the psu
+                    for command, args in payload.items():
+                        scpi_cmd = self.cli_to_scpi(command, args)
 
-                logger.info(f"Querying command: {scpi_cmd}")
+                        logger.info(f"Querying command: {scpi_cmd}")
+                        last_response = self.psu.query(scpi_cmd)
 
-                last_response = self.psu.query(scpi_cmd)
+                        logger.info(f"Response: {last_response}")
 
-                logger.info(f"Response: {last_response}")
+                        reply_payload[command] = last_response
+            else: # if it is a set command we just send the command to the psu and then query the state of the psu
+                for command, args in payload.items():
+                    scpi_cmd = self.cli_to_scpi(command, args)
 
-                reply_payload[command] = last_response
+                    logger.info(f"Writing command: {scpi_cmd}")
+                    last_response = self.psu.write(scpi_cmd)
+
+                    logger.info(f"Response: {last_response}")
+
+                    reply_payload[command] = last_response
 
 
             if any(key.startswith("set") for key in payload):
