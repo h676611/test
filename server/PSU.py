@@ -14,8 +14,6 @@ class PSU:
         
         self.address = resource.resource_name
 
-        self.SET_COMMANDS = ["INST OUT", "VOLT", "CURR", "CURR VLIM", "VOLT ILIM", "OUTP"]
-
         self.selected_channel = 1
 
         self.states = {}
@@ -29,9 +27,10 @@ class PSU:
             }
 
     def query(self, command):
-        logger.debug(f'querying {command} length {len(command)}')
+        # command = command.strip(' ')
+        # logger.debug(f'querying {command} length {len(command)}')
         response = self.resource.query(command)
-        logger.debug(f'query response: {response}')
+        # logger.debug(f'query response: {response}')
         return response
 
     def get_state(self):
@@ -39,10 +38,10 @@ class PSU:
 
     def write(self, command):
         self.resource.write(command)
-        logger.debug(f'writing {command}')
+        # logger.debug(f'writing {command}')
 
         read_response = self.resource.read()
-        logger.debug(f'write response: {read_response}')
+        # logger.debug(f'write response: {read_response}')
         
         try:
             match = re.match(r"^(.*?)\s*(\d+(?:\.\d+)?)$", command)
@@ -50,19 +49,19 @@ class PSU:
 
             value = match.group(2)
             
-            logger.debug(f'matched name: {name}, value: {value}')
+            # logger.debug(f'matched name: {name}, value: {value}')
 
             if "INST OUT" in command: # check channel change
                 self.selected_channel = int(value)
-                logger.debug(f'selected channel changed to {self.selected_channel}')
+                # logger.debug(f'selected channel changed to {self.selected_channel}')
                 return read_response
 
             self.states[self.selected_channel][name] = value
-            logger.debug(f'state updated: {self.states[self.selected_channel]}')
+            # logger.debug(f'state updated: {self.states[self.selected_channel]}')
                 
 
         except Exception as e:
             logger.error(f"exeption {e} for {command}")
             
-        logger.debug(f'fpsu state: {self.get_state()}')
+        # logger.debug(f'fpsu state: {self.get_state()}')
         return read_response
