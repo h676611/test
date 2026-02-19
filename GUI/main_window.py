@@ -10,7 +10,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setWindowTitle("PSU Control GUI")
         self.setGeometry(100, 100, 600, 400)
 
-        self.psus = ["ASRL1::INSTR", "ASRL2::INSTR", "ASRL3::INSTR"]
+        self.instrument_names = ["hmp4040", "k2400", "k2450", "k6500"]
         self.connection_names = ["LV Connection", "HV Connection Setup 1", "HV Connection Setup 2", "DMM Connection"]
         self.control_rows = []
 
@@ -40,8 +40,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.label = QtWidgets.QLabel("PSU Control Panel")
         layout.addWidget(self.label)
 
-        for i, psu in enumerate(self.psus):
-            name = self.connection_names[i] if i < len(self.connection_names) else None
-            row = ControlRow(instrument=psu, name=name)
+        for i, instrument_name in enumerate(self.instrument_names):
+            row_name = self.connection_names[i] if i < len(self.connection_names) else None
+            row = ControlRow(instrument_name=instrument_name, row_name=row_name)
             layout.addWidget(row)
             self.control_rows.append(row)

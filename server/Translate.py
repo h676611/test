@@ -33,7 +33,7 @@ HMP4040_dic = {
             "set_channel": "INST OUT",
             "get_channel": "INST:NSEL?",
             "get_error": "SYST:ERR?",
-            "set_output": "OUTP",
+            "set_output": "OUTP ",
             "set_output_all": "OUTP:GEN ",
             "set_source": "SOUR FUNC ",
             #"set_autorange": "SET AUTORANGE CMD",

@@ -1,14 +1,16 @@
 from zmq_client import ZMQClient
+import ordered_argparse
+from collections import OrderedDict
 
 
 def run_cli(parser_class, psu_name, inargs=None):
     parser = parser_class()
-    args = parser.parse_args(inargs)
+    args = parser.parse_args(inargs, namespace=ordered_argparse.OrderedNamespace())
 
-    payload = {
-        k: v for k, v in vars(args).items()
+    payload = OrderedDict(
+        (k, v) for k, v in args.ordered()
         if v is not None and v is not False
-    }
+    )
 
     request = {
         "name": psu_name,

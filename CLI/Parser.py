@@ -1,12 +1,12 @@
-import argparse
+import ordered_argparse
 
 
 def create_base_parser():
-    base = argparse.ArgumentParser(add_help=False)
+    base = ordered_argparse.ArgumentParser(add_help=False)
     base.add_argument(
-            "--connect",
-            action="store_true",
-            help="Connects PSU to the server"
+        "--connect",
+        action="store_true",
+        help="Connects PSU to the server"
     )
     base.add_argument(
         "--disconnect",
@@ -57,43 +57,37 @@ def create_base_parser():
     base.add_argument(
         '--get-id',
         action='store_const',
-        const='',
-        default=argparse.SUPPRESS,
+        const=''
     )
 
     base.add_argument(
         '--get-voltage',
         action='store_const',
         const='',
-        default=argparse.SUPPRESS,
     )
 
     base.add_argument(
         '--get-current',
         action='store_const',
         const='',
-        default=argparse.SUPPRESS,
     )
 
     base.add_argument(
         '--get-display-voltage',
         action='store_const',
         const='',
-        default=argparse.SUPPRESS,
     )
 
     base.add_argument(
         '--get-display-current',
         action='store_const',
         const='',
-        default=argparse.SUPPRESS,
     )
 
     base.add_argument(
         '--get-error',
         action='store_const',
         const='',
-        default=argparse.SUPPRESS,
     )
 
 
@@ -110,7 +104,7 @@ def create_base_parser():
     return base
     
 
-class Hmp4040_Parser(argparse.ArgumentParser):
+class Hmp4040_Parser(ordered_argparse.ArgumentParser):
     def __init__(self):
         base = create_base_parser()
 
@@ -132,8 +126,7 @@ class Hmp4040_Parser(argparse.ArgumentParser):
             '--get-channel',
             '-gc',
             action='store_const',
-            const='',
-            default=argparse.SUPPRESS,
+            const=''
         )
 
         self.add_argument(
@@ -145,7 +138,7 @@ class Hmp4040_Parser(argparse.ArgumentParser):
             help="Activate output for all channels"
         )
 
-class K2400_Parser(argparse.ArgumentParser):
+class K2400_Parser(ordered_argparse.ArgumentParser):
     def __init__(self):
         base = create_base_parser()
         super().__init__(
@@ -153,7 +146,7 @@ class K2400_Parser(argparse.ArgumentParser):
             parents=[base]
         )
 
-class K2450_Parser(argparse.ArgumentParser):
+class K2450_Parser(ordered_argparse.ArgumentParser):
     def __init__(self):
         base = create_base_parser()
         super().__init__(
@@ -161,7 +154,7 @@ class K2450_Parser(argparse.ArgumentParser):
             parents=[base]
         )
     
-class K6500_Parser(argparse.ArgumentParser):
+class K6500_Parser(ordered_argparse.ArgumentParser):
     def __init__(self):
         super().__init__(
             description="K6500 DMM CLI"
@@ -187,8 +180,8 @@ class K6500_Parser(argparse.ArgumentParser):
             '--get-channel',
             '-gch',
             dest="get_channel",
-            action='store_true',
-            default=argparse.SUPPRESS,
+            action='store_const',
+            const='',
             help="Get all closed channels on the multimeter"
         )
 
