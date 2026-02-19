@@ -136,3 +136,9 @@ resources:
     device: HMP4040
   ASRL2::INSTR:
     device: HMP4040
+  USB0::0x05E6::0x2400::XXXXXXXX::INSTR:
+    device: HMP4040
+  USB0::0x05E6::0x2450::04424778::INSTR:
+    device: HMP4040
+  USB0::0x05E6::0x6500::04543021::INSTR:
+    device: HMP4040

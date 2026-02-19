@@ -27,7 +27,8 @@ class Server:
         logger.info("Connecting to PSUs")
 
         for name, psu in self.config.items():
-            self.connect_psu(psu["address"], name=name)
+            address = self.config[name]["address"]
+            self.connect_psu(address=address, name=name)
 
         while True:
             identity = self.socket.recv()
@@ -37,21 +38,30 @@ class Server:
                 self.handle_request(identity, request)
             except Exception as e:
                 logger.error(f"Couldn't handle request. error: {e}")
-                self.send_error(identity=identity, message=str(e), address=request.get("address"))
+                self.send_error(identity=identity, message=str(e), address=address)
 
     def handle_request(self, identity, request):
+        self.clients.add(identity)
         payload = request.get("payload", {})
-        address = request.get("name")
+        name = request.get("name")
 
-        logger.info(f"received: {request}")
+        # Lookup the address from config
+        try:
+            address = self.config[name]["address"]
+        except KeyError:
+            self.send_error(identity, f"No PSU with name '{name}' in config", address=None)
+            return
 
+        logger.info(f"received request for {name} at {address}: {payload}")
+
+        # Handle system commands
         system_commands = {"connect", "disconnect", "status"}
-
         for command, value in payload.items():
             if command in system_commands and value:
                 self.handle_system_command(identity, address, command)
                 return
 
+        # Otherwise, send SCPI command
         self.handle_scpi_command(identity, address, payload)
 
         
@@ -145,7 +155,7 @@ class Server:
     def send_error(self, identity, message, address):
         reply = {
             "type": "error",
-            "address": address,
+            "name": address,
             "payload": {
                 "message": message
             }
