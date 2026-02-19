@@ -37,7 +37,6 @@ class PSU:
         return self.states
 
     def write(self, command):
-        command = command.strip(' ')
         self.resource.write(command)
         # logger.debug(f'writing {command}')
 

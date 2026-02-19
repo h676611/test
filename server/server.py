@@ -179,6 +179,6 @@ class Server:
         #     self.send_response(client, message)
 
     def send_response(self, identity, response):
-        logger.info(f'Sending response {response}')
+        # logger.info(f'Sending response {response}')
         self.socket.send(identity, zmq.SNDMORE)
         self.socket.send_json(response)
