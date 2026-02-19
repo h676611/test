@@ -31,17 +31,18 @@ class PSU:
     def query(self, command):
         command = command.strip(' ')
 
-        self.resource.write(command)
-        logger.debug(f'writing {command}')
 
-        read_response = self.resource.read()
-        logger.debug(f'write response: {read_response}')
-
-        response = self.resource.query(command)
-        logger.debug(f'query response: {response}')
+        
 
         # if set command, update state
         if any(command.startswith(cmd) for cmd in self.SET_COMMANDS):
+
+            self.resource.write(command)
+            logger.debug(f'writing {command}')
+
+            read_response = self.resource.read()
+            logger.debug(f'write response: {read_response}')
+
             try:
                 match = re.match(r"(.+)\s+(-?\d+(?:\.\d*)?|-?\.\d+)$", command)
                 name = match.group(1)
@@ -50,13 +51,16 @@ class PSU:
 
                 if name == "INST OUT": # check channel change
                     self.selected_channel = int(value)
-                    return response
+                    return read_response
 
                 self.states[self.selected_channel][name] = value
                 
 
             except Exception as e:
                 logger.error(f"exeption {e} for {command}")
+
+        response = self.resource.query(command)
+        logger.debug(f'query response: {response}')
 
         return response
 

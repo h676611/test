@@ -2,18 +2,21 @@ import sys, os
 sys.path.append(os.getcwd())
 from Parser import Parser
 import zmq
+from helper import process_payload
 
 def main(inargs=None):
     parser = Parser()
     args = parser.parse_args(inargs)
     request = {
-        'name': 'ASRL1::INSTR'
+        'name': 'ASRL5::INSTR'
     }
     request['request_id'] = 1
     payload = {
         k: v for k, v in vars(args).items()
         if v is not None and v is not False
     }
+    
+    # payload = process_payload(payload)
     request["payload"] = payload
     print(request)
     return request
