@@ -9,7 +9,11 @@ CONSTS = {
 
 def process_payload(payload):
     for key, value in payload.items():
-        if isinstance(value, str):
+        if "get" in key:
+            print(f"Processing getter command: {key} with value: {value}")
+            # For getters, we typically don't have values to process, so we can skip
+            return payload
+        elif isinstance(value, str):
             # 1. Strip 'A' and 'V' from the ends
             clean_value = value.strip("AV")
             

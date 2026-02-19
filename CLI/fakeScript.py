@@ -15,8 +15,8 @@ def main(inargs=None):
         k: v for k, v in vars(args).items()
         if v is not None and v is not False
     }
-    
-    # payload = process_payload(payload)
+    print(f"Raw payload before processing: {payload}")
+    payload = process_payload(payload)
     request["payload"] = payload
     print(request)
     return request

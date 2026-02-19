@@ -14,7 +14,7 @@ class Server:
         self.socket = self.context.socket(zmq.ROUTER)
         self.socket.bind(address)
         self.psu_queues = {}
-        self.rm = pyvisa.ResourceManager()
+        self.rm = pyvisa.ResourceManager('psu_sims.yaml@sim')
         self.clients = set()
 
         self.config = config
@@ -24,7 +24,7 @@ class Server:
     def start(self):
         logger.info("Server started")
 
-        logger.info("Connecting to PSUs with config")
+        logger.info("Connecting to PSUs")
 
         for name, psu in self.config.items():
             self.connect_psu(psu["address"], name=name)
@@ -85,14 +85,12 @@ class Server:
             logger.error(f"PSU {address} already connected")
             self.send_error(identity=identity, message="PSU already connected", address=address)
             return
-        try:
-            if name:
-                logger.debug(f'trying to connect {name}')
-                psu = PSU(self.rm.open_resource(address), name=name)
-            else:
-                psu = PSU(self.rm.open_resource(address))
-        except Exception as e:
-            logger.error("Could not connect ", address)
+        
+        logger.debug(f'trying to connect {address}')
+        if name:
+            psu = PSU(self.rm.open_resource(address), name=name)
+        else:
+            psu = PSU(self.rm.open_resource(address))
         psu.connected = True
         self.psus[address] = psu
         self.psu_queues[address] = PSUQueue(self.psus[address], self)
