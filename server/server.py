@@ -24,7 +24,7 @@ class Server:
     def start(self):
         logger.info("Server started")
 
-        logger.info("Connecting to PSUs")
+        logger.info("Connecting to PSUs with config")
 
         for name, psu in self.config.items():
             self.connect_psu(psu["address"], name=name)
@@ -85,12 +85,14 @@ class Server:
             logger.error(f"PSU {address} already connected")
             self.send_error(identity=identity, message="PSU already connected", address=address)
             return
-        
-        logger.debug(f'trying to connect {address}')
-        if name:
-            psu = PSU(self.rm.open_resource(address), name=name)
-        else:
-            psu = PSU(self.rm.open_resource(address))
+        try:
+            if name:
+                logger.debug(f'trying to connect {name}')
+                psu = PSU(self.rm.open_resource(address), name=name)
+            else:
+                psu = PSU(self.rm.open_resource(address))
+        except Exception as e:
+            logger.error("Could not connect ", address)
         psu.connected = True
         self.psus[address] = psu
         self.psu_queues[address] = PSUQueue(self.psus[address], self)
