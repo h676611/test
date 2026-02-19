@@ -35,7 +35,7 @@ devices:
           q: "INST:NSEL?"
           r: "{:d}"
         setter:
-          q: "INST OUT {:d}"
+          q: "INST OUT{:d}"
           r: "OK"
         specs:
           min: 1
@@ -91,7 +91,7 @@ devices:
           type: float
       output:
         default: 0
-        getter: 
+        getter:
           q: "OUTP?"
           r: "{:d}"
         setter:
