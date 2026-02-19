@@ -4,7 +4,7 @@ import json
 
 if __name__ == "__main__":
 
-    with open(r'server\psu_config.json', 'r') as file:
+    with open('server/psu_config.json', 'r') as file:
         config_file = json.load(file)
 
     server = Server(config=config_file)
