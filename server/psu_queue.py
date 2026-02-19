@@ -73,22 +73,26 @@ class PSUQueue:
         self.server.broadcast(state_message)
 
     def cli_to_scpi(self, command, args):
-        
         base_scpi = self.dic.get(command)
 
-        if not base_scpi:
-            raise ValueError(f"Unknown CLI command: {command}")
 
-        if isinstance(args, list):
-            return base_scpi.format(channel=args[0], voltage=args[1])
+        if base_scpi is None:
+            raise ValueError(f"Unknown command: {command}")
 
-        elif isinstance(args, str) or isinstance(args, int) or isinstance(args, float):
-            if str(args) == '':
-                return base_scpi
-            return base_scpi + str(args)
+        # No arguments
+        if args is None or args == '':
+            scpi_cmd = base_scpi
+            logger.debug(f'converted command: {scpi_cmd}')
+            return scpi_cmd
+        # ardument is list or tuple
+        elif isinstance(args, (list, tuple)):
+            scpi_cmd = base_scpi.format(*args)
+        # argument is single value
+        elif isinstance(args, (int, float, str)):
+            scpi_cmd = base_scpi.format(args)
+        
+        return scpi_cmd
 
-        elif isinstance(args, bool):
-            return base_scpi
 
-        else:
-            raise ValueError(f"Unsupported argument type for {command}")
+
+

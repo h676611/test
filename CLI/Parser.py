@@ -46,11 +46,28 @@ def create_base_parser():
 
     # --- Combined Commands ---
     base.add_argument(
-        '--set-iv',
+            "--set-channel-voltage",
+            "-scv",
+            dest="set_channel_voltage",
+            nargs=2,
+            metavar=('CHANNEL', 'VOLTAGE'),
+            help="set VOLTAGE at specified CHANNEL"
+        )
+    base.add_argument(
+        "--set-channel-current",
+        "-scc",
+        dest="set_channel_current",
         nargs=2,
-        metavar=('CURRENT', 'VOLTAGE'),
-        type=float,
-        help='Simultaneously set Current and Voltage'
+        metavar=('CHANNEL', 'CURRENT'),
+        help="set CURRENT at specified channel CHANNEL"
+    )
+    base.add_argument(
+        "--set-channel-current-voltage",
+        "-sccv",
+        dest="set_channel_current_voltage",
+        nargs=3,
+        metavar=('CHANNEL', 'CURRENT', 'VOLTAGE'),
+        help="set CURRENT and VOLTAGE at specified channel CHANNEL"
     )
 
     # --- Measurements & Queries (Getters) ---
@@ -187,8 +204,8 @@ class K6500_Parser(argparse.ArgumentParser):
             '--get-channel',
             '-gch',
             dest="get_channel",
-            action='store_true',
-            default=argparse.SUPPRESS,
+            action='store_const',
+            const='',
             help="Get all closed channels on the multimeter"
         )
 

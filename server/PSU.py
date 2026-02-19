@@ -29,7 +29,6 @@ class PSU:
             }
 
     def query(self, command):
-        # command = command.strip(' ')
         logger.debug(f'querying {command} length {len(command)}')
         response = self.resource.query(command)
         logger.debug(f'query response: {response}')
@@ -39,7 +38,6 @@ class PSU:
         return self.states
 
     def write(self, command):
-        command = command.strip(' ')
         self.resource.write(command)
         logger.debug(f'writing {command}')
 

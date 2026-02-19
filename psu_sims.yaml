@@ -18,16 +18,7 @@ devices:
         r: OK
       - q: "SYST:ERR?"
         r: "ERROR 0,No error"
-      - q: "OUTP?"
-        r: "{output_state}"
-      - q: "OUTP:SEL 1"
-        r: OK
-      - q: "OUTP:SEL 0"
-        r: OK
-      - q: "OUTP:GEN 1"
-        r: OK
-      - q: "OUTP:GEN 0"
-        r: OK
+
     properties:
       channel:
         default: 1
@@ -118,14 +109,26 @@ devices:
           type: int
 
       display_current:
+        default: 0.0
         getter:
           q: "CURR?"
           r: "{:.2f}"
+        setter:
+          q: "notused {:.2f}"
+          r: "notused"
+        specs:
+          type: float
 
       display_voltage:
+        default: 0.0
         getter:
           q: "VOLT?"
           r: "{:.2f}"
+        setter:
+          q: "notused2 {:.2f}"
+          r: "notused"
+        specs:
+          type: float
 
       display_output:
         getter:
@@ -262,6 +265,192 @@ devices:
         specs:
           valid: [0, 1]
           type: int
+
+  K2450:
+    eom:
+      USB INSTR:
+        q: "\r\n"
+        r: "\n"
+
+    error: "Keithley Instruments,2450,dummy,psu"
+
+    dialogues:
+      - q: "*IDN?"
+        r: "Keithley Instruments,2450,dummy,1.0"
+
+      - q: "SYST:ERR?"
+        r: "0,No error"
+
+    properties:
+      output:
+        default: 0
+        getter:
+          q: "OUTP?"
+          r: "{:d}"
+        setter:
+          q: "OUTP {:d}"
+          r: OK
+        specs:
+          valid: [0, 1]
+          type: int
+
+      output_all:
+        default: 0
+        setter:
+          q: "OUTP:GEN {:d}"
+          r: OK
+        specs:
+          valid: [0, 1]
+          type: int
+
+      source_function:
+        default: "VOLT"
+        setter:
+          q: "SOUR:FUNC {:s}"
+          r: OK
+        specs:
+          valid: ["VOLT", "CURR"]
+          type: str
+
+      autorange:
+        default: 1
+        setter:
+          q: "SOUR:CURR:RANG:AUTO {:d}"
+          r: OK
+        specs:
+          valid: [0, 1]
+          type: int
+
+      voltage:
+        default: 0.0
+        getter:
+          q: "MEAS:VOLT?"
+          r: "{:.3f}"
+        setter:
+          q: "SOUR:VOLT {:.3f}"
+          r: OK
+        specs:
+          min: 0.0
+          max: 200.0
+          type: float
+
+      voltage_range:
+        default: 200.0
+        setter:
+          q: "SOUR:VOLT:RANG {:.3f}"
+          r: OK
+        specs:
+          min: 0.2
+          max: 200.0
+          type: float
+
+      display_voltage:
+        default: 0.0
+        getter:
+          q: "SOUR:VOLT?"
+          r: "{:.3f}"
+        specs:
+          min: 0.0
+          max: 200.0
+          type: float
+
+      voltage_limit:
+        default: 200.0
+        getter:
+          q: "SOUR:CURR:VLIMIT?"
+          r: "{:.3f}"
+        setter:
+          q: "SOUR:CURR:VLIMIT {:.3f}"
+          r: OK
+        specs:
+          min: 0.0
+          max: 200.0
+          type: float
+
+      current:
+        default: 0.0
+        getter:
+          q: "MEAS:CURR?"
+          r: "{:.6f}"
+        setter:
+          q: "SOUR:CURR {:.6f}"
+          r: OK
+        specs:
+          min: 0.0
+          max: 1.0
+          type: float
+
+      display_current:
+        default: 0.0
+        getter:
+          q: "SOUR:CURR?"
+          r: "{:.6f}"
+        specs:
+          min: 0.0
+          max: 1.0
+          type: float
+
+      current_limit:
+        default: 1.0
+        getter:
+          q: "SOUR:VOLT:ILIMIT?"
+          r: "{:.6f}"
+        setter:
+          q: "SOUR:VOLT:ILIMIT {:.6f}"
+          r: OK
+        specs:
+          min: 0.0
+          max: 1.0
+          type: float
+
+      four_wire_sense:
+        default: 0
+        setter:
+          q: ":SENSE:CURRENT:RSENSE {:d}"
+          r: OK
+        specs:
+          valid: [0, 1]
+          type: int
+
+  K6500:
+    eom:
+      USB INSTR:
+        q: "\r\n"
+        r: "\n"
+
+    error: "K6500 error"
+
+    dialogues:
+      - q: "*IDN?"
+        r: "Keithley Instruments,6500,dummy,1.0"
+
+      - q: "*RST"
+        r: OK
+
+    properties:
+      voltage:
+        default: 0.000
+        getter:
+          q: "MEAS:VOLT?"
+          r: "{:.6f}"
+        specs:
+          min: -1000.0
+          max: 1000.0
+          type: float
+
+      channel:
+        default: 1
+        getter:
+          q: "ROUT:MULTIPLE:CLOSE?"
+          r: "{:d}"
+        setter:
+          q: "ROUTE:OPEN:ALL; ROUTE:CLOSE (@{:d})"
+          r: OK
+        specs:
+          min: 1
+          max: 20
+          type: int
+
       
 
 resources:
@@ -269,7 +458,7 @@ resources:
     device: HMP4040
   USB0::0x05E6::0x2400::XXXXXXXX::INSTR:
     device: K2400
-  # USB0::0x05E6::0x2450::04424778::INSTR:
-  #   device: K2450
-  # USB0::0x05E6::0x6500::04543021::INSTR:
-  #   device: K6500
+  USB0::0x05E6::0x2450::04424778::INSTR:
+    device: K2450
+  USB0::0x05E6::0x6500::04543021::INSTR:
+    device: K6500

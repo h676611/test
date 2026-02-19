@@ -172,11 +172,11 @@ class Server:
         self.broadcast(status_message)
 
     def broadcast(self, message):
-        logger.info(f"Broadcasting status update")
+        # logger.info(f"Broadcasting status update")
         for client in self.clients:
             self.send_response(client, message)
 
     def send_response(self, identity, response):
-        logger.info(f'Sending response {response}')
+        # logger.info(f'Sending response {response}')
         self.socket.send(identity, zmq.SNDMORE)
         self.socket.send_json(response)
