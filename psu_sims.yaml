@@ -6,7 +6,7 @@ devices:
       ASRL INSTR:
         q: "\r\n"
         r: "\n"
-    error: "DUMMY ERROR"
+    error: "HMP4040 dummy error"
     dialogues:
       - q: "*IDN?"
         r: "Rohde&Schwarz,HMP4040,DUMMY,SIM"
@@ -38,9 +38,9 @@ devices:
           q: "INST OUT{:d}"
           r: "OK"
         specs:
-          min: 1
-          max: 4
+          valid: [1, 2, 3, 4]
           type: int
+
       voltage:
         default: 0.0
         getter:
@@ -53,6 +53,7 @@ devices:
           min: 0.0
           max: 32.0
           type: float
+
       current:
         default: 0.0
         getter:
@@ -65,6 +66,7 @@ devices:
           min: 0.0
           max: 5.0
           type: float
+
       current_limit:
         default: 5.0
         getter:
@@ -77,6 +79,7 @@ devices:
           min: 0.0
           max: 5.0
           type: float
+
       voltage_limit:
         default: 32.0
         getter:
@@ -89,6 +92,7 @@ devices:
           min: 0.0
           max: 32.0
           type: float
+
       output:
         default: 0
         getter:
@@ -98,9 +102,9 @@ devices:
           q: "OUTP {:d}"
           r: OK
         specs:
-          min: 0
-          max: 1
+          valid: [0, 1]
           type: int
+
       output_all:
         default: 0
         getter:
@@ -110,8 +114,7 @@ devices:
           q: "OUTP:GEN {:d}"
           r: OK
         specs:
-          min: 0
-          max: 1
+          valid: [0, 1]
           type: int
 
       display_current:
@@ -129,16 +132,144 @@ devices:
           q: "OUTP:SEL?"
           r: "{:d}"
 
+
+  K2400:
+    eom:
+      USB INSTR:
+        q: "\r\n"
+        r: "\n"
+    error: "Keithley Instruments,2400,dummy,psu"
+    dialogues:
+      - q: "*IDN?"
+        r: "K2400 ID"
+    properties:
+      output:
+        default: 0
+        getter:
+          q: "OUTP?"
+          r: "{:d}"
+        setter:
+          q: "OUTP {:d}"
+          r: OK
+        specs:
+          valid: [0, 1]
+          type: int
+
+      current:
+        default: 0.0
+        getter:
+          q: "MEAS:CURR?"
+          r: "{:.2f}"
+        setter:
+          q: "SOUR:CURR {:.2f}"
+          r: OK
+        specs:
+          min: 0.0
+          max: 5.0
+          type: float
+
+      current_limit:
+        default: 5.0
+        getter:
+          q: "SOUR:VOLT:ILIMIT?"
+          r: "{:.2f}"
+        setter:
+          q: "SOUR:VOLT:ILIMIT {:.2f}"
+          r: Ok
+        specs:
+          min: 0.0
+          max: 5.0
+          type: float
+
+      voltage:
+        default: 0.0
+        getter:
+          q: "MEAS:VOLT?"
+          r: "{:.2f}"
+        setter:
+          q: "SOUR:VOLT {:.2f}"
+        specs:
+          min: 0.0
+          max: 32.0
+          type: float
+
+      voltage_limit:
+        default: 32.0
+        getter:
+          q: "SOUR:CURR:VLIMIT?"
+          r: "{:.2f}"
+        setter:
+          q: "SOUR:CURR:VLIMIT {:.2f}"
+          r: OK
+        specs:
+          min: 0.0
+          max: 32.0
+          type: float
+
+      source_function:
+        default: "VOLT"
+        setter:
+          q: "SOUR:FUNC {:s}"
+          r: OK
+        specs:
+          valid: ["VOLT", "CURR"]
+          type: str
+
+      autorange:
+        default: 1
+        setter:
+          q: "SOUR:CURR:RANG:AUTO {:d}"
+          r: OK
+        specs:
+          valid: [0, 1]
+          type: int
+
+      voltage_range:
+        default: 32.0
+        setter:
+          q: "SOUR:VOLT:RANG {:.2f}"
+          r: OK
+        specs:
+          min: 0.0
+          max: 32.0
+          type: float
+
+      display_voltage:
+        default: 0.0
+        getter:
+          q: "SOUR:VOLT?"
+          r: "{:.2f}"
+        specs:
+          min: 0.0
+          max: 32.0
+          type: float
+        
+      display_current:
+        default: 0.0
+        getter:
+          q: "SOUR:CURR?"
+          r: "{:.2f}"
+        specs:
+          min: 0.0
+          max: 5.0
+          type: float
+
+      four_wire_sense:
+        default: 0
+        setter:
+          q: ":SENSE:CURRENT:RSENSE {:d}"
+          r: OK
+        specs:
+          valid: [0, 1]
+          type: int
+      
+
 resources:
-  ASRL1::INSTR:
-    device: HMP4040
   ASRL5::INSTR:
     device: HMP4040
-  ASRL2::INSTR:
-    device: HMP4040
   USB0::0x05E6::0x2400::XXXXXXXX::INSTR:
-    device: HMP4040
-  USB0::0x05E6::0x2450::04424778::INSTR:
-    device: HMP4040
-  USB0::0x05E6::0x6500::04543021::INSTR:
-    device: HMP4040
+    device: K2400
+  # USB0::0x05E6::0x2450::04424778::INSTR:
+  #   device: K2450
+  # USB0::0x05E6::0x6500::04543021::INSTR:
+  #   device: K6500
