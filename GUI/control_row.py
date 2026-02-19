@@ -9,13 +9,13 @@ class ControlRow(QtWidgets.QWidget):
     """A GUI control row for a single instrument, allowing connection management and SCPI command sending."""
     send_request = QtCore.pyqtSignal(dict)
 
-    def __init__(self, instrument, name, parent=None):
+    def __init__(self, instrument_name, row_name, parent=None):
         super().__init__(parent)
-        self.instrument = instrument
+        self.instrument_name = instrument_name
 
         self.connected = False
 
-        self.name = name
+        self.row_name = row_name
         
         # Main container
         main_layout = QtWidgets.QVBoxLayout(self)
@@ -23,14 +23,14 @@ class ControlRow(QtWidgets.QWidget):
         # 1. Create lists to store your widgets so you can access them later
         self.rows = [] 
         
-        num_rows = 4 if instrument == "ASRL1::INSTR" else 1
+        num_rows = 4 if instrument_name == "hmp4040" else 1
 
 
         top_layout = QtWidgets.QHBoxLayout()
 
         main_layout.addLayout(top_layout)
 
-        self.name_label = QtWidgets.QLabel(self.name)
+        self.name_label = QtWidgets.QLabel(self.row_name)
         top_layout.addWidget(self.name_label)
 
         # connect button
@@ -68,7 +68,7 @@ class ControlRow(QtWidgets.QWidget):
             row_widgets = {}
 
             # Label
-            label_text = f"{i+1}" if num_rows > 1 else instrument
+            label_text = f"{i+1}" if num_rows > 1 else instrument_name
             row_widgets['label'] = QtWidgets.QLabel(label_text)
             row_layout.addWidget(row_widgets['label'])
 
@@ -120,7 +120,7 @@ class ControlRow(QtWidgets.QWidget):
             'connect': True
         }
         request = {
-            'name': self.instrument,
+            'name': self.instrument_name,
             'payload': payload
         }
         self.send_request.emit(request)
@@ -135,7 +135,7 @@ class ControlRow(QtWidgets.QWidget):
             'disconnect': True
         }
         request = {
-            'name': self.instrument,
+            'name': self.instrument_name,
             'payload': payload
         }
         self.send_request.emit(request)
@@ -144,7 +144,7 @@ class ControlRow(QtWidgets.QWidget):
 
     @QtCore.pyqtSlot(int, dict)
     def handle_reply(self, request_id, reply):
-        if reply.get("address") != self.instrument:
+        if reply.get("name") != self.instrument_name:
             return
         logger.info(f"received reply: {reply}")
         # TODO [KAN-19] handle replies
@@ -152,7 +152,7 @@ class ControlRow(QtWidgets.QWidget):
 
     @QtCore.pyqtSlot(dict)
     def handle_status_update(self, msg):
-        if msg.get("address") != self.instrument:
+        if msg.get("name") != self.instrument_name:
             return
         logger.info(f'received status update: {msg}')
 
@@ -179,7 +179,7 @@ class ControlRow(QtWidgets.QWidget):
     
     @QtCore.pyqtSlot(dict)
     def handle_error(self, message):
-        if message.get("address") != self.instrument:
+        if message.get("name") != self.instrument_name:
             return
         logger.error(f"received error: {message}")
         # TODO [KAN-20] handle errors
@@ -203,7 +203,7 @@ class ControlRow(QtWidgets.QWidget):
         }
 
         request = {
-            "name": self.instrument,
+            "name": self.instrument_name,
             "payload": payload
         }
 

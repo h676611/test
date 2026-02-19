@@ -163,18 +163,20 @@ class Server:
         self.send_response(identity, reply)
 
     def broadcast_status(self, address):
-        psu = self.psus.get(address)
-        status_message = {
-            "type": "status_update",
-            "address": address,
-            "state": psu.get_state()
-        }
-        self.broadcast(status_message)
+        pass
+        # psu = self.psus.get(address)
+        # status_message = {
+        #     "type": "status_update",
+        #     "address": address,
+        #     "state": psu.get_state()
+        # }
+        # self.broadcast(status_message)
 
     def broadcast(self, message):
-        logger.info(f"Broadcasting status update")
-        for client in self.clients:
-            self.send_response(client, message)
+        pass
+        # logger.info(f"Broadcasting status update")
+        # for client in self.clients:
+        #     self.send_response(client, message)
 
     def send_response(self, identity, response):
         logger.info(f'Sending response {response}')
