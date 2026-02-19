@@ -191,6 +191,7 @@ devices:
           r: "{:.2f}"
         setter:
           q: "SOUR:VOLT {:.2f}"
+          r: OK
         specs:
           min: 0.0
           max: 32.0

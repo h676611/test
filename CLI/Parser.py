@@ -44,31 +44,6 @@ def create_base_parser():
         help='Set current limit (I-Limit)'
     )
 
-    # --- Combined Commands ---
-    base.add_argument(
-            "--set-channel-voltage",
-            "-scv",
-            dest="set_channel_voltage",
-            nargs=2,
-            metavar=('CHANNEL', 'VOLTAGE'),
-            help="set VOLTAGE at specified CHANNEL"
-        )
-    base.add_argument(
-        "--set-channel-current",
-        "-scc",
-        dest="set_channel_current",
-        nargs=2,
-        metavar=('CHANNEL', 'CURRENT'),
-        help="set CURRENT at specified channel CHANNEL"
-    )
-    base.add_argument(
-        "--set-channel-current-voltage",
-        "-sccv",
-        dest="set_channel_current_voltage",
-        nargs=3,
-        metavar=('CHANNEL', 'CURRENT', 'VOLTAGE'),
-        help="set CURRENT and VOLTAGE at specified channel CHANNEL"
-    )
 
     # --- Measurements & Queries (Getters) ---
     base.add_argument(
@@ -153,6 +128,32 @@ class Hmp4040_Parser(ordered_argparse.ArgumentParser):
             type=str,
             choices=["True", "False", "true", "false", "0", "1"],
             help="Activate output for all channels"
+        )
+
+                # --- Combined Commands ---
+        self.add_argument(
+                "--set-channel-voltage",
+                "-scv",
+                dest="set_channel_voltage",
+                nargs=2,
+                metavar=('CHANNEL', 'VOLTAGE'),
+                help="set VOLTAGE at specified CHANNEL"
+            )
+        self.add_argument(
+            "--set-channel-current",
+            "-scc",
+            dest="set_channel_current",
+            nargs=2,
+            metavar=('CHANNEL', 'CURRENT'),
+            help="set CURRENT at specified channel CHANNEL"
+        )
+        self.add_argument(
+            "--set-channel-current-voltage",
+            "-sccv",
+            dest="set_channel_current_voltage",
+            nargs=3,
+            metavar=('CHANNEL', 'CURRENT', 'VOLTAGE'),
+            help="set CURRENT and VOLTAGE at specified channel CHANNEL"
         )
 
 class K2400_Parser(ordered_argparse.ArgumentParser):

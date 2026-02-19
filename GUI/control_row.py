@@ -72,10 +72,6 @@ class ControlRow(QtWidgets.QWidget):
             row_widgets['label'] = QtWidgets.QLabel(label_text)
             row_layout.addWidget(row_widgets['label'])
 
-
-
-
-            
             # Voltage Input
             row_widgets['voltage_input'] = QtWidgets.QDoubleSpinBox()
             row_widgets['voltage_input'].setSuffix(' V')
@@ -196,11 +192,13 @@ class ControlRow(QtWidgets.QWidget):
 
         # TODO [KAN-21] generate request with function
         payload = {
-            'set_channel': channel,
             'set_voltage': v_val,
             'set_current': i_val,
             'set_output': 1 if output_checked else 0
         }
+
+        if self.instrument_name == "hmp4040": payload['set_channel'] = channel
+
 
         request = {
             "name": self.instrument_name,
