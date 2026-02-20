@@ -1,5 +1,5 @@
-from Parser import Hmp4040_Parser
-from psu_cli_base import run_cli
+from .Parser import Hmp4040_Parser
+from .psu_cli_base import run_cli
 
 
 if __name__ == "__main__":

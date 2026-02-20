@@ -1,11 +1,11 @@
 import sys, os
 sys.path.append(os.getcwd())
-from Parser import Parser
+from .Parser import create_base_parser
 import zmq
-from helper import process_payload
+from .helper import process_payload
 
 def main(inargs=None):
-    parser = Parser()
+    parser = create_base_parser()
     args = parser.parse_args(inargs)
     request = {
         'name': 'ASRL5::INSTR'

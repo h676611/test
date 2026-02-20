@@ -1,4 +1,4 @@
-from zmq_client import ZMQClient
+from .zmq_client import ZMQClient
 import ordered_argparse
 from collections import OrderedDict
 
