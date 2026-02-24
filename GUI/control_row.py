@@ -14,6 +14,7 @@ class ControlRow(QtWidgets.QWidget):
         self.instrument_name = instrument_name
 
         self.connected = False
+        self._prev_connected = False
 
         self.row_name = row_name
         
@@ -118,6 +119,7 @@ class ControlRow(QtWidgets.QWidget):
     def start(self):
 
         # TODO generate request with function
+        self._prev_connected = self.connected
         payload = {
             'connect': True
         }
@@ -134,6 +136,7 @@ class ControlRow(QtWidgets.QWidget):
     def stop(self):
 
         # TODO generate request with function
+        self._prev_connected = self.connected
         payload = {
             'disconnect': True
         }
@@ -189,6 +192,8 @@ class ControlRow(QtWidgets.QWidget):
         error_msg = payload["message"]
         self.error_label.setText(f"Error: {error_msg}")
         self.error_label.show()
+        self.connected = self._prev_connected
+        self.toggle_button.setText("Stop" if self.connected else "Start")
 
     # 3. The function that handles the logic
     def on_row_submitted(self, row_index, output_checked):
