@@ -185,8 +185,10 @@ class ControlRow(QtWidgets.QWidget):
         if message.get("name") != self.instrument_name:
             return
         logger.error(f"received error: {message}")
-        payload = message["payload"]
-        error_msg = payload["message"]
+        payload = message.get("payload", {})
+        if not isinstance(payload, dict):
+            payload = {}
+        error_msg = payload.get("message", "Unknown error")
         self.error_label.setText(f"Error: {error_msg}")
         self.error_label.show()
 
