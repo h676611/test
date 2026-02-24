@@ -151,9 +151,7 @@ class ControlRow(QtWidgets.QWidget):
         if reply.get("name") != self.instrument_name:
             return
         logger.info(f"received reply: {reply}")
-        
         # TODO [KAN-19] handle replies
-        
 
     @QtCore.pyqtSlot(dict)
     def handle_status_update(self, msg):
