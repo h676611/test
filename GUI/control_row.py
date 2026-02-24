@@ -40,57 +40,40 @@ class ControlRow(QtWidgets.QWidget):
 
 
         # Header labels
-        header_layout = QtWidgets.QHBoxLayout()
+        header_grid = QtWidgets.QGridLayout()
+        main_layout.addLayout(header_grid)
 
-        main_layout.addLayout(header_layout)
-
-        self.channel_label = QtWidgets.QLabel("Channel")
-        header_layout.addWidget(self.channel_label)
-
-        self.voltage_label = QtWidgets.QLabel("Voltage [V]")
-        header_layout.addWidget(self.voltage_label)
-
-        self.current_label = QtWidgets.QLabel("Current [A]")
-        header_layout.addWidget(self.current_label)
-
-        self.output_label = QtWidgets.QLabel("Output")
-        header_layout.addWidget(self.output_label)
-
-        self.send_label = QtWidgets.QLabel("Send")
-        header_layout.addWidget(self.send_label)
+        # Labels for the columns to ensure they align
+        header_grid.addWidget(QtWidgets.QLabel("Channel"), 0, 0)
+        header_grid.addWidget(QtWidgets.QLabel("Voltage [V]"), 0, 1)
+        header_grid.addWidget(QtWidgets.QLabel("Current [A]"), 0, 2)
+        header_grid.addWidget(QtWidgets.QLabel("Output"), 0, 3)
+        header_grid.addWidget(QtWidgets.QLabel("Send"), 0, 4)
 
         for i in range(num_rows):
-            row_layout = QtWidgets.QHBoxLayout()
-
-            row_layout_top = QtWidgets.QVBoxLayout()
-            
             # Create a dictionary to hold this row's widgets
             row_widgets = {}
 
             # Label
             label_text = f"{i+1}" if num_rows > 1 else instrument
             row_widgets['label'] = QtWidgets.QLabel(label_text)
-            row_layout.addWidget(row_widgets['label'])
-
-
-
-
+            header_grid.addWidget(row_widgets['label'], i*2 + 1, 0)
             
             # Voltage Input
             row_widgets['voltage_input'] = QtWidgets.QDoubleSpinBox()
             row_widgets['voltage_input'].setSuffix(' V')
             row_widgets['voltage_input'].setRange(-100., 100.)
-            row_layout.addWidget(row_widgets['voltage_input'])
+            header_grid.addWidget(row_widgets['voltage_input'], i*2 + 1, 1)
 
             # Current Input
             row_widgets['current_input'] = QtWidgets.QDoubleSpinBox()
             row_widgets['current_input'].setSuffix(' A')
             row_widgets['current_input'].setRange(-10., 10.)
-            row_layout.addWidget(row_widgets['current_input'])
+            header_grid.addWidget(row_widgets['current_input'], i*2 + 1, 2)
 
             # Output on/off
             row_widgets['on_off_channel_toggle'] = QtWidgets.QCheckBox()
-            row_layout.addWidget(row_widgets["on_off_channel_toggle"])
+            header_grid.addWidget(row_widgets["on_off_channel_toggle"], i*2 + 1, 3)
 
             # Send Button
             send_btn = QtWidgets.QPushButton(f"Send")
@@ -100,11 +83,32 @@ class ControlRow(QtWidgets.QWidget):
                 lambda checked, row=i, toggle=row_widgets["on_off_channel_toggle"]:
                     self.on_row_submitted(row, toggle.isChecked())
             )
-            row_layout.addWidget(send_btn)
+            header_grid.addWidget(send_btn, i*2 + 1, 4)
 
-            # Store the dictionary in our list and add layout to screen
+            # Live view for read-only
+            live_widgets = {}
+
+            # Channel lable
+            live_widgets['label'] = QtWidgets.QLabel("(live)")
+            header_grid.addWidget(live_widgets['label'], i*2 + 2, 0)
+
+            # Read-only voltage
+            live_widgets['voltage_value'] = QtWidgets.QLabel("- V")
+            header_grid.addWidget(live_widgets['voltage_value'], i*2 + 2, 1)
+
+            # Read-only current
+            live_widgets['current_value'] = QtWidgets.QLabel("- A")
+            header_grid.addWidget(live_widgets['current_value'], i*2 + 2, 2)
+
+            # Read-only output
+            live_widgets['output_value'] = QtWidgets.QLabel("-")
+            header_grid.addWidget(live_widgets['output_value'], i*2 + 2, 3)
+
+            # Legg til live view
+            row_widgets['live'] = live_widgets
+
+            # Store the dictionary in our list
             self.rows.append(row_widgets)
-            main_layout.addLayout(row_layout)
 
 
     def on_toggle(self):
@@ -169,12 +173,13 @@ class ControlRow(QtWidgets.QWidget):
                 channel_state = status.get(str(channel))
             if not isinstance(channel_state, dict): # skip om kanalen ikke har status
                 continue
-            if "VOLT" in channel_state:
-                row["voltage_input"].setValue(channel_state["VOLT"]) # update gui volt verdi (burde vi lage ny row sånn at verdien alltid står til og med om man begynner å endre på verdiene uten å sende de?)
-            if "CURR" in channel_state:
-                row["current_input"].setValue(channel_state["CURR"]) # update gui curr verdi
-            if "OUTP" in channel_state:
-                row["on_off_channel_toggle"].setChecked(bool(channel_state["OUTP"])) # sync sånn at checkboxen viser riktig
+            live = row.get("live", {})
+            if "VOLT" in channel_state and "voltage_value" in live:
+                live["voltage_value"].setText(f"{channel_state['VOLT']} V")
+            if "CURR" in channel_state and "current_value" in live:
+                live["current_value"].setText(f"{channel_state['CURR']} A")
+            if "OUTP" in channel_state and "output_value" in live:
+                live["output_value"].setText("On" if channel_state["OUTP"] else "Off")
 
     
     @QtCore.pyqtSlot(dict)
