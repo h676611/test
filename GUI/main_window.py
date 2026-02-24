@@ -10,7 +10,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setWindowTitle("PSU Control GUI")
         self.setGeometry(100, 100, 600, 400)
 
-        self.instrument_names = ["hmp4040", "k2400", "k2450", "k6500"]
+        self.instrument_names = ["hmp4040", "k2400", "k2450", "k6500","Test Error"]
         self.connection_names = ["LV Connection", "HV Connection Setup 1", "HV Connection Setup 2", "DMM Connection"]
         self.control_rows = []
 

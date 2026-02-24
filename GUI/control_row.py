@@ -38,6 +38,12 @@ class ControlRow(QtWidgets.QWidget):
         self.toggle_button.clicked.connect(self.on_toggle)
         top_layout.addWidget(self.toggle_button)
 
+        # Error display
+        self.error_label = QtWidgets.QLabel()
+        self.error_label.setStyleSheet("color: red; font-weight: bold;")
+        self.error_label.setWordWrap(True)
+        self.error_label.hide()
+        main_layout.addWidget(self.error_label)
 
         # Header labels
         header_layout = QtWidgets.QHBoxLayout()
@@ -119,6 +125,7 @@ class ControlRow(QtWidgets.QWidget):
             'name': self.instrument_name,
             'payload': payload
         }
+        self.error_label.hide()
         self.send_request.emit(request)
         self.toggle_button.setText("Stop")
         self.connected = True
@@ -134,6 +141,7 @@ class ControlRow(QtWidgets.QWidget):
             'name': self.instrument_name,
             'payload': payload
         }
+        self.error_label.hide()
         self.send_request.emit(request)
         self.toggle_button.setText("Start")
         self.connected = False
@@ -143,6 +151,7 @@ class ControlRow(QtWidgets.QWidget):
         if reply.get("name") != self.instrument_name:
             return
         logger.info(f"received reply: {reply}")
+        
         # TODO [KAN-19] handle replies
         
 
@@ -178,7 +187,10 @@ class ControlRow(QtWidgets.QWidget):
         if message.get("name") != self.instrument_name:
             return
         logger.error(f"received error: {message}")
-        # TODO [KAN-20] handle errors
+        payload = message["payload"]
+        error_msg = payload["message"]
+        self.error_label.setText(f"Error: {error_msg}")
+        self.error_label.show()
 
     # 3. The function that handles the logic
     def on_row_submitted(self, row_index, output_checked):
