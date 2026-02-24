@@ -56,7 +56,6 @@ class ZmqClient(QtCore.QObject):
                     self.status_update_received.emit(msg)
                 elif msg_type == "error":
                     self.error_received.emit(msg)
-                    # logger.error(f'received error: {msg}')
 
             except zmq.Again:
                 time.sleep(0.01)
