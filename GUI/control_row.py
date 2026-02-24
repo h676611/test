@@ -14,6 +14,7 @@ class ControlRow(QtWidgets.QWidget):
         self.instrument_name = instrument_name
 
         self.connected = False
+        self._prev_connected = False
 
         self.row_name = row_name
         
@@ -38,6 +39,12 @@ class ControlRow(QtWidgets.QWidget):
         self.toggle_button.clicked.connect(self.on_toggle)
         top_layout.addWidget(self.toggle_button)
 
+        # Error display
+        self.error_label = QtWidgets.QLabel()
+        self.error_label.setStyleSheet("color: red; font-weight: bold;")
+        self.error_label.setWordWrap(True)
+        self.error_label.hide()
+        main_layout.addWidget(self.error_label)
 
         # Header labels
         header_layout = QtWidgets.QHBoxLayout()
@@ -112,6 +119,7 @@ class ControlRow(QtWidgets.QWidget):
     def start(self):
 
         # TODO generate request with function
+        self._prev_connected = self.connected
         payload = {
             'connect': True
         }
@@ -119,6 +127,7 @@ class ControlRow(QtWidgets.QWidget):
             'name': self.instrument_name,
             'payload': payload
         }
+        self.error_label.hide()
         self.send_request.emit(request)
         self.toggle_button.setText("Stop")
         self.connected = True
@@ -127,6 +136,7 @@ class ControlRow(QtWidgets.QWidget):
     def stop(self):
 
         # TODO generate request with function
+        self._prev_connected = self.connected
         payload = {
             'disconnect': True
         }
@@ -134,6 +144,7 @@ class ControlRow(QtWidgets.QWidget):
             'name': self.instrument_name,
             'payload': payload
         }
+        self.error_label.hide()
         self.send_request.emit(request)
         self.toggle_button.setText("Start")
         self.connected = False
@@ -144,7 +155,6 @@ class ControlRow(QtWidgets.QWidget):
             return
         logger.info(f"received reply: {reply}")
         # TODO [KAN-19] handle replies
-        
 
     @QtCore.pyqtSlot(dict)
     def handle_status_update(self, msg):
@@ -178,7 +188,14 @@ class ControlRow(QtWidgets.QWidget):
         if message.get("name") != self.instrument_name:
             return
         logger.error(f"received error: {message}")
-        # TODO [KAN-20] handle errors
+        payload = message.get("payload", {})
+        if not isinstance(payload, dict):
+            payload = {}
+        error_msg = payload.get("message", "Unknown error")
+        self.error_label.setText(f"Error: {error_msg}")
+        self.error_label.show()
+        self.connected = self._prev_connected
+        self.toggle_button.setText("Stop" if self.connected else "Start")
 
     # 3. The function that handles the logic
     def on_row_submitted(self, row_index, output_checked):

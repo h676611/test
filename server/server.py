@@ -49,7 +49,7 @@ class Server:
         try:
             address = self.config[name]["address"]
         except KeyError:
-            self.send_error(identity, f"No PSU with name '{name}' in config", address=None)
+            self.send_error(identity, f"No PSU with name '{name}' in config", address=name)
             return
 
         logger.info(f"received request for {name} at {address}: {payload}")
