@@ -44,7 +44,8 @@ class PSU:
         self.resource.write(command)
         # logger.debug(f'writing {command}')
 
-        read_response = self.resource.read()
+        #read_response = self.resource.read()
+        read_response = "test"
         # logger.debug(f'write response: {read_response}')
         
         try:
@@ -89,4 +90,5 @@ class PSU:
             
             
         logger.debug(f'PSU state: {self.get_state()}')
-        return read_response
+        #return read_response
+        return "test"

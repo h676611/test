@@ -3,7 +3,7 @@
         "address": "ASRL5::INSTR"
     },
     "k2400": {
-        "address": "USB0::0x05E6::0x2400::XXXXXXXX::INSTR"
+        "address": "GPIB0::24::INSTR"
     },
     "k2450": {
         "address": "USB0::0x05E6::0x2450::04424778::INSTR"
