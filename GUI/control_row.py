@@ -66,6 +66,15 @@ class ControlRow(QtWidgets.QWidget):
         self.send_label = QtWidgets.QLabel("Send")
         header_layout.addWidget(self.send_label)
 
+        self.meas_voltage_label = QtWidgets.QLabel("Meas. V")
+        header_layout.addWidget(self.meas_voltage_label)
+
+        self.meas_current_label = QtWidgets.QLabel("Meas. A")
+        header_layout.addWidget(self.meas_current_label)
+
+        self.meas_output_label = QtWidgets.QLabel("Status")
+        header_layout.addWidget(self.meas_output_label)
+
         for i in range(num_rows):
             row_layout = QtWidgets.QHBoxLayout()
 
@@ -104,6 +113,19 @@ class ControlRow(QtWidgets.QWidget):
                     self.on_row_submitted(row, toggle.isChecked())
             )
             row_layout.addWidget(send_btn)
+
+            # Measured value labels (read-only live feedback)
+            row_widgets['meas_voltage'] = QtWidgets.QLabel("—")
+            row_widgets['meas_voltage'].setStyleSheet("color: #2196F3; font-weight: bold;")
+            row_layout.addWidget(row_widgets['meas_voltage'])
+
+            row_widgets['meas_current'] = QtWidgets.QLabel("—")
+            row_widgets['meas_current'].setStyleSheet("color: #2196F3; font-weight: bold;")
+            row_layout.addWidget(row_widgets['meas_current'])
+
+            row_widgets['meas_output'] = QtWidgets.QLabel("—")
+            row_widgets['meas_output'].setStyleSheet("color: #888; font-weight: bold;")
+            row_layout.addWidget(row_widgets['meas_output'])
 
             # Store the dictionary in our list and add layout to screen
             self.rows.append(row_widgets)
@@ -176,11 +198,24 @@ class ControlRow(QtWidgets.QWidget):
             if not isinstance(channel_state, dict): # skip om kanalen ikke har status
                 continue
             if "VOLT" in channel_state:
-                row["voltage_input"].setValue(channel_state["VOLT"]) # update gui volt verdi (burde vi lage ny row sånn at verdien alltid står til og med om man begynner å endre på verdiene uten å sende de?)
+                try:
+                    row["meas_voltage"].setText(f"{float(channel_state['VOLT']):.3f} V")
+                except (ValueError, TypeError):
+                    row["meas_voltage"].setText(str(channel_state["VOLT"]))
             if "CURR" in channel_state:
-                row["current_input"].setValue(channel_state["CURR"]) # update gui curr verdi
+                try:
+                    row["meas_current"].setText(f"{float(channel_state['CURR']):.3f} A")
+                except (ValueError, TypeError):
+                    row["meas_current"].setText(str(channel_state["CURR"]))
             if "OUTP" in channel_state:
-                row["on_off_channel_toggle"].setChecked(bool(channel_state["OUTP"])) # sync sånn at checkboxen viser riktig
+                try:
+                    outp_on = bool(int(float(str(channel_state["OUTP"]))))
+                except (ValueError, TypeError):
+                    outp_on = False
+                row["meas_output"].setText("ON" if outp_on else "OFF")
+                row["meas_output"].setStyleSheet(
+                    f"color: {'#4CAF50' if outp_on else '#F44336'}; font-weight: bold;"
+                )
 
     
     @QtCore.pyqtSlot(dict)
@@ -205,16 +240,16 @@ class ControlRow(QtWidgets.QWidget):
         i_val = target_row['current_input'].value()
         channel = row_index + 1
         
-
+        payload = {}
+        if self.instrument_name == "hmp4040": 
+            payload['set_channel'] = channel
 
         # TODO [KAN-21] generate request with function
-        payload = {
-            'set_voltage': v_val,
-            'set_current': i_val,
-            'set_output': 1 if output_checked else 0
-        }
+        payload["set_voltage"] = v_val
+        payload["set_current"] = i_val
+        payload["set_output"] = 1 if output_checked else 0
 
-        if self.instrument_name == "hmp4040": payload['set_channel'] = channel
+
 
 
         request = {

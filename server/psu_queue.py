@@ -20,12 +20,12 @@ class PSUQueue:
 
         self.thread.start()
         
-    def add_command(self, identity, payload):
-        self.queue.put((identity, payload))
+    def add_command(self, identity, payload, request_id=None):
+        self.queue.put((identity, payload, request_id))
 
     def worker(self):
         while True:
-            identity, payload = self.queue.get()
+            identity, payload, request_id = self.queue.get()
             last_response = None
             reply_payload = {
 
@@ -56,7 +56,10 @@ class PSUQueue:
                 self.broadcast_update()
 
             reply = {
+                "type": "scpi_reply",
+                "name": self.name,
                 "address": self.address,
+                "request_id": request_id,
                 "payload": reply_payload
             }
 
@@ -67,6 +70,7 @@ class PSUQueue:
         state = self.psu.get_state()
         state_message = {
             "type": "status_update",
+            "name": self.name,
             "status": state,
             "address": self.address
         }

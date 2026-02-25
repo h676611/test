@@ -44,12 +44,13 @@ class Server:
         self.clients.add(identity)
         payload = request.get("payload", {})
         name = request.get("name")
+        request_id = request.get("request_id")
 
         # Lookup the address from config
         try:
             address = self.config[name]["address"]
         except KeyError:
-            self.send_error(identity, f"No PSU with name '{name}' in config", address=name)
+            self.send_error(identity, f"No PSU with name '{name}' in config", address=name, request_id=request_id)
             return
 
         logger.info(f"received request for {name} at {address}: {payload}")
@@ -58,14 +59,14 @@ class Server:
         system_commands = {"connect", "disconnect", "status"}
         for command, value in payload.items():
             if command in system_commands and value:
-                self.handle_system_command(identity, address, command)
+                self.handle_system_command(identity, address, command, name=name, request_id=request_id)
                 return
 
         # Otherwise, send SCPI command
-        self.handle_scpi_command(identity, address, payload)
+        self.handle_scpi_command(identity, address, payload, request_id=request_id)
 
         
-    def handle_system_command(self, identity, address, command):
+    def handle_system_command(self, identity, address, command, name=None, request_id=None):
         dispatch = {
             "connect": self.connect_psu,
             "disconnect": self.disconnect_psu,
@@ -75,25 +76,25 @@ class Server:
         handler = dispatch.get(command)
 
         if not handler:
-            self.send_error(identity, f"Unknown system command: {command}", address)
+            self.send_error(identity, f"Unknown system command: {command}", address, request_id=request_id)
             return
 
-        handler(address=address, identity=identity)
+        handler(address=address, identity=identity, name=name, request_id=request_id)
 
 
-    def handle_scpi_command(self, identity, address, payload):
+    def handle_scpi_command(self, identity, address, payload, request_id=None):
         if address not in self.psu_queues:
-            self.send_error(identity, "PSU not connected", address)
+            self.send_error(identity, "PSU not connected", address, request_id=request_id)
             return
 
-        self.psu_queues[address].add_command(identity, payload)
+        self.psu_queues[address].add_command(identity, payload, request_id=request_id)
 
 
 
-    def connect_psu(self, address, identity=None, name=None):
+    def connect_psu(self, address, identity=None, name=None, request_id=None):
         if address in self.psu_queues:
             logger.error(f"PSU {address} already connected")
-            self.send_error(identity=identity, message="PSU already connected", address=address)
+            self.send_error(identity=identity, message="PSU already connected", address=address, request_id=request_id)
             return
         
         logger.debug(f'trying to connect {address}')
@@ -112,17 +113,19 @@ class Server:
 
             reply = {
                 "type": "system_reply",
+                "name": psu.name,
                 "address": address,
+                "request_id": request_id,
                 "payload": {
                     "connect": "OK"
                 }
             }
             self.send_response(identity, reply)
     
-    def disconnect_psu(self, identity, address):
+    def disconnect_psu(self, identity, address, name=None, request_id=None):
         if address not in self.psu_queues:
             logger.error(f"PSU {address} not connected")
-            self.send_error(identity, "PSU not connected", address)
+            self.send_error(identity, "PSU not connected", address, request_id=request_id)
             return
         psu = self.psus[address]
         psu.connected = False
@@ -133,7 +136,9 @@ class Server:
 
         reply = {
             "type": "system_reply",
+            "name": psu.name,
             "address": address,
+            "request_id": request_id,
             "payload": {
                 "disconnect": "OK"
             }
@@ -142,20 +147,23 @@ class Server:
         self.send_response(identity, reply)
 
 
-    def send_status(self, identity, address):
+    def send_status(self, identity, address, name=None, request_id=None):
         psu = self.psus.get(address)
         status_message = {
-            "type": "status_update", 
+            "type": "status_update",
+            "name": psu.name,
             "status": psu.get_state(), 
-            "address": address
+            "address": address,
+            "request_id": request_id
         }
         self.send_response(identity, status_message)
 
 
-    def send_error(self, identity, message, address):
+    def send_error(self, identity, message, address, request_id=None):
         reply = {
             "type": "error",
             "name": address,
+            "request_id": request_id,
             "payload": {
                 "message": message
             }
@@ -163,20 +171,21 @@ class Server:
         self.send_response(identity, reply)
 
     def broadcast_status(self, address):
-        pass
-        # psu = self.psus.get(address)
-        # status_message = {
-        #     "type": "status_update",
-        #     "address": address,
-        #     "state": psu.get_state()
-        # }
-        # self.broadcast(status_message)
+        psu = self.psus.get(address)
+        if not psu:
+            return
+        status_message = {
+            "type": "status_update",
+            "name": psu.name,
+            "address": address,
+            "status": psu.get_state()
+        }
+        self.broadcast(status_message)
 
     def broadcast(self, message):
-        pass
-        # logger.info(f"Broadcasting status update")
-        # for client in self.clients:
-        #     self.send_response(client, message)
+        logger.info(f"Broadcasting status update")
+        for client in self.clients:
+            self.send_response(client, message)
 
     def send_response(self, identity, response):
         # logger.info(f'Sending response {response}')
