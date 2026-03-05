@@ -138,7 +138,7 @@ devices:
 
   K2400:
     eom:
-      USB INSTR:
+      GPIB INSTR:
         q: "\r\n"
         r: "\n"
     error: "Keithley Instruments,2400,dummy,psu"
@@ -457,7 +457,7 @@ devices:
 resources:
   ASRL5::INSTR:
     device: HMP4040
-  USB0::0x05E6::0x2400::XXXXXXXX::INSTR:
+  GPIB0::24::INSTR:
     device: K2400
   USB0::0x05E6::0x2450::04424778::INSTR:
     device: K2450

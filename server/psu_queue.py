@@ -45,11 +45,14 @@ class PSUQueue:
                     scpi_cmd = self.cli_to_scpi(command, args)
 
                     logger.info(f"Writing command: {scpi_cmd}")
-                    last_response = self.psu.write(scpi_cmd)
+                    self.psu.write(scpi_cmd)
 
                     logger.info(f"Response: {last_response}")
 
-                    reply_payload[command] = last_response
+
+                # After processing set commands, we query all get commands to update the state
+                reply_payload.update(self.query_all_get_commands())
+                
 
 
             if any(key.startswith("set") for key in payload):
@@ -63,18 +66,20 @@ class PSUQueue:
                 "payload": reply_payload
             }
 
+
             self.server.send_response(identity, reply)
 
 
     def broadcast_update(self):
-        state = self.psu.get_state()
-        state_message = {
-            "type": "status_update",
-            "name": self.name,
-            "status": state,
-            "address": self.address
-        }
-        self.server.broadcast(state_message)
+        # state = self.query_all_get_commands()
+        # state_message = {
+        #     "type": "status_update",
+        #     "name": self.name,
+        #     "status": state,
+        #     "address": self.address
+        # }
+        # self.server.broadcast(state_message)
+        pass
 
     def cli_to_scpi(self, command, args):
         base_scpi = self.dic.get(command)
@@ -96,6 +101,17 @@ class PSUQueue:
             scpi_cmd = base_scpi.format(args)
         
         return scpi_cmd
+    
+
+    def query_all_get_commands(self):
+        logger.debug('Querying all get commands to update state')
+        state = {}
+        for command, scpi_template in self.dic.items():
+            if command.startswith("get") and isinstance(scpi_template, str):
+                scpi_cmd = scpi_template.format(*["?"] * scpi_template.count("{}"))
+                response = self.psu.query(scpi_cmd)
+                state[command] = response
+        return state
 
 
 
