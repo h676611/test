@@ -18,7 +18,7 @@ K6500_dic = {
     "get_id": "*IDN?",
     "reset": "*RST",
     "get_voltage": "MEAS:VOLT?",
-    "set_channel": "ROUTE:OPEN:ALL; ROUTE:CLOSE (@{})",
+    "set_channel": "rout:open:all;:rout:clos (@{});:READ?",
     "get_channel": "ROUT:MULTIPLE:CLOSE?",
     "get_channel_voltage": "ROUT:OPEN:ALL;:ROUT:CLOS (@{});:READ?"
 }

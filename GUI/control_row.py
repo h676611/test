@@ -180,6 +180,7 @@ class ControlRow(QtWidgets.QWidget):
 
     @QtCore.pyqtSlot(dict)
     def handle_status_update(self, msg):
+        logger.debug("received status update")
         if msg.get("name") != self.instrument_name:
             return
         logger.info(f'received status update: {msg}')
@@ -197,17 +198,17 @@ class ControlRow(QtWidgets.QWidget):
                 channel_state = status.get(str(channel))
             if not isinstance(channel_state, dict): # skip om kanalen ikke har status
                 continue
-            if "VOLT" in channel_state:
+            if "get_current" in channel_state:
                 try:
                     row["meas_voltage"].setText(f"{float(channel_state['VOLT']):.3f} V")
                 except (ValueError, TypeError):
                     row["meas_voltage"].setText(str(channel_state["VOLT"]))
-            if "CURR" in channel_state:
+            if "get_voltage" in channel_state:
                 try:
                     row["meas_current"].setText(f"{float(channel_state['CURR']):.3f} A")
                 except (ValueError, TypeError):
                     row["meas_current"].setText(str(channel_state["CURR"]))
-            if "OUTP" in channel_state:
+            if "get_display_output" in channel_state:
                 try:
                     outp_on = bool(int(float(str(channel_state["OUTP"]))))
                 except (ValueError, TypeError):
